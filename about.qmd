@@ -1,0 +1,21 @@
+---
+title: "About"
+#image: profile.jpg
+about:
+  template: jolla
+  links:
+    - icon: twitter
+      text: Twitter
+      href: https://twitter.com/takeshi_enomoto
+    - icon: github
+      text: Github
+      href: https://github.com/tenomoto
+    - icon: cloud-sun
+      text: Rによる気象データサイエンス
+      href: https://www.dpac.dpri.kyoto-u.ac.jp/enomoto/rmetds
+    - icon: file-slides
+      text: Rを気象研究に使う
+      href: https://www.dpac.dpri.kyoto-u.ac.jp/enomoto/rintro.html
+---
+
+このブログについて

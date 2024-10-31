@@ -1,0 +1,23 @@
+---
+title: "shift"
+description: "要素をずらす"
+author: "榎本剛"
+date: "2024/10/31"
+categories:
+  - functions
+---
+Rにない函数。`head`と`tail`を使う。
+
+```{r}
+#| echo: true
+shift <- function(x, n) {
+  if (n == 0) {
+    x
+  } else {
+    c(tail(x, n), head(x, -n))
+  }
+}
+shift(1:9,3)
+shift(1:9,-2)
+```
+
