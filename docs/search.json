@@ -1,0 +1,30 @@
+[
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "このブログについて"
+  },
+  {
+    "objectID": "posts/shift.html",
+    "href": "posts/shift.html",
+    "title": "shift",
+    "section": "",
+    "text": "Rにない函数。headとtailを使う。\n\nshift &lt;- function(x, n) {\n  if (n == 0) {\n    x\n  } else {\n    c(tail(x, n), head(x, -n))\n  }\n}\nshift(1:9,3)\n\n[1] 7 8 9 1 2 3 4 5 6\n\nshift(1:9,-2)\n\n[1] 3 4 5 6 7 8 9 1 2"
+  },
+  {
+    "objectID": "posts/dir2deg.html",
+    "href": "posts/dir2deg.html",
+    "title": "16方位を角度に",
+    "section": "",
+    "text": "アメダスの16方位を角度に変換する函数。 角度をseqで生成して、それぞれの名前を方角にする。 方角を与えると角度を返す。 ベクトル化されているので、複数の方角を渡すことができる。\n\ndir2deg &lt;- function(x) {\n  dir &lt;- seq(0, 360, length.out=17)[1:16]\n  names(dir) &lt;- c(\"北\", \"北北東\", \"北東\", \"東北東\",\n                  \"東\", \"東南東\", \"南東\", \"南南東\", \n                  \"南\", \"南南西\", \"南西\", \"西南西\", \n                  \"西\", \"西北西\", \"北西\", \"北北西\")\n  dir[x]\n}\ndir &lt;- c(\"北\", \"北北東\", \"北東\", \"東北東\")\ndir2deg(dir)\n\n    北 北北東   北東 東北東 \n   0.0   22.5   45.0   67.5"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "R中心生活（R中）",
+    "section": "",
+    "text": "16方位を角度に\n\n\n\n\n\n\nfunctions\n\n\n\n方角を角度に変換\n\n\n\n\n\nOct 31, 2024\n\n\n榎本剛\n\n\n\n\n\n\n\n\n\n\n\n\nshift\n\n\n\n\n\n\nfunctions\n\n\n\n要素をずらす\n\n\n\n\n\nOct 31, 2024\n\n\n榎本剛\n\n\n\n\n\n\nNo matching items"
+  }
+]
