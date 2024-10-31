@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/enso.html",
       "/posts/dir2deg.html",
       "/posts/shift.html"
     ]

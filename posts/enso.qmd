@@ -1,0 +1,54 @@
+[Historic Oceanic Niño Index and Niño 3.4 Data](https://bmcnoldy.rsmas.miami.edu/tropics/oni/)のData file with monthly & seasonal values since 1854をクリックしてNINO34のSSTデータを取得。
+`year.end`は適宜編集する。
+
+```{r}
+# https://bmcnoldy.rsmas.miami.edu/tropics/oni/ONI_NINO34_1854-2022.txt
+dom <- "NINO34"
+year.start <- 1854
+year.end <- 2024
+fname <- paste0("ONI_", dom, "_", year.start, "-", year.end, ".txt")
+enso <- read.table(fname, header = TRUE, skip = 9)
+enso$yearmon <- as.Date(paste0(enso$YEAR, "-", enso$MON.MMM, "-15"))
+enso[enso==-99.99] = NA
+```
+
+±0.5°Cの期間に陰影をつけ、10年毎にラベルをつけ、2年毎に目盛を打つ。
+
+```{r}
+plot.sst <- function(yearmon, sst.anom){
+  plot(yearmon, sst.anom, xaxt="n",
+    type="l", xlab = "time",  ylab="°C",
+    ylim=c(-3, 3))
+  axis(1, at=pretty(yearmon, 10), labels=format(pretty(yearmon, 10), "%Y"))
+  axis(1, at=pretty(yearmon, 40), labels = FALSE, tck = -0.02)
+  axis(3, at=pretty(yearmon, 40), labels = FALSE, tck = -0.02)
+  axis(4)
+  polygon(c(yearmon, rev(yearmon)),
+          c(ifelse(sst.anom < 0.5, 0.5, sst.anom),
+            rep(0.5, length(sst.anom))), col="pink", border = FALSE)
+  polygon(c(yearmon, rev(yearmon)),
+          c(ifelse(sst.anom > -0.5, -0.5, sst.anom),
+            rep(-0.5, length(sst.anom))), col="lightblue", border = FALSE)
+  abline(h = -2, col = "lightblue", lty=2, lwd=2)
+  abline(h = -1, col = "lightblue", lty=2, lwd=1.5)
+  abline(h = -0.5, col = "lightblue", lty=2, lwd=1)
+  abline(h =  0.5, col = "pink", lty=2, lwd=1)
+  abline(h =  1, col = "pink", lty=2, lwd=1.5)
+  abline(h =  2, col = "pink", lty=2, lwd=2)
+}
+```
+
+2段に分けてプロットする。
+
+```{r}
+par(mfrow=c(2, 1), mar=c(3, 3, 1, 1))
+period <- enso$yearmon >= as.Date("1871-01-01") & enso$yearmon < as.Date("1950-01-01")
+yearmon <- enso$yearmon[period]
+sst.anom <- enso$NINO34_ANOM[period]
+plot.sst(yearmon, sst.anom)
+title(paste(dom, "SST anomaly"))
+period <- enso$yearmon > as.Date("1950-01-01") & !is.na(enso$NINO34_ANOM)
+yearmon <- enso$yearmon[period]
+sst.anom <- enso$NINO34_ANOM[period]
+plot.sst(yearmon, sst.anom)
+```
