@@ -18,4 +18,4 @@ about:
       href: https://www.dpac.dpri.kyoto-u.ac.jp/enomoto/rintro.html
 ---
 
-このブログについて
+Rの使い方の例を掲載します。

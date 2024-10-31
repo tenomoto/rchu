@@ -1,3 +1,13 @@
+---
+title: "ENSO"
+description: "エルニーニョ・南方振動"
+author: "榎本剛"
+date: "2024/10/31"
+categories:
+  - graphics
+  - climate
+---
+
 [Historic Oceanic Niño Index and Niño 3.4 Data](https://bmcnoldy.rsmas.miami.edu/tropics/oni/)のData file with monthly & seasonal values since 1854をクリックしてNINO34のSSTデータを取得。
 `year.end`は適宜編集する。
 
