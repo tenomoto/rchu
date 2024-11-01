@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/geta.html",
       "/posts/dir2deg.html",
       "/posts/shift.html",
       "/posts/enso.html"
