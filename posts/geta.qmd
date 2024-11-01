@@ -1,0 +1,19 @@
+---
+title: "下駄を履いたグラフ"
+description: "曲線に定数を加えて見やすく"
+author: "榎本剛"
+date: "2024/11/1"
+categories:
+  - graphics
+---
+
+曲線が重なっているとき、定数を加えてずらして描くと見やすくなる。
+範囲を指定して、軸だけの空のグラフを作る。
+y軸を反転させている。
+
+```{r}
+plot(NULL, type="n", xlab="x", ylab="y", xlim=c(0, 2*pi), ylim=c(5, 1))
+x <- seq(0, 2*pi, length.out=101)
+lines(x, sin(x) + 2)
+lines(x, cos(x) + 4)
+```
