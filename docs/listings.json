@@ -2,6 +2,10 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/remove-alias.html",
+      "/posts/vector.html",
+      "/posts/help.html",
+      "/posts/interactive.html",
       "/posts/geta.html",
       "/posts/dir2deg.html",
       "/posts/shift.html",

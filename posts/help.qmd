@@ -1,0 +1,54 @@
+---
+title: ヘルプ
+description: 函数や機能のヘルプを参照する
+author: 榎本剛
+categories:
+  - basics
+---
+
+RにはUNIXのmanのようなヘルプシステムがある。
+
+```{r}
+help(solve)
+```
+
+次のようにすることもできる。
+
+```r
+?solve
+```
+
+ウェブブラウザでHTML版を表示するには
+
+```r
+help.start()
+
+```
+
+とする。
+
+函数名などが分からない時は、
+
+```r 
+help.search(solve)
+```
+
+または
+```{r}
+??solve
+```
+
+でヘルプを検索できる。
+
+例は次のようにして参照する。
+
+```{r}
+example(solve)
+```
+
+
+
+
+
+
+

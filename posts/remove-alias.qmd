@@ -1,0 +1,16 @@
+---
+title: PowerShellでR
+description: PowerShellのエイリアスを削除する
+author: 榎本剛
+categories:
+  - windows
+---
+
+WindowsのPowerShellでは`R`は`Invoke-History`のエイリアスになっているので、Rを起動するには`R.exe`とタイプする必要がある。
+このエイリアスを削除すれば、`R`とタイプすればRが起動するようになる。
+エイリアスの削除は[Remove-Alias](`https://learn.microsoft.com/ja-jp/powershell/module/microsoft.powershell.utility/remove-alias )を用いる。
+PowerShellの設定ファイル`$profile`をエディタで開いて次を記述する。
+
+```PowerShell
+Remove-Alias -Name R
+```
