@@ -1,0 +1,23 @@
+---
+title: QR
+description: QRコード
+author: 榎本剛
+categories:
+  - graphics
+  - package
+---
+
+RでQRコードを作成するには、パッケージ`qrcode`を使う。
+
+```r
+library(qrcode)
+png("qr.png", 144, 144) # 144 x 144 pixels
+plot(qr_code("https://tenomoto.github.io/rchu/"))
+dev.off()
+```
+
+```{r}
+#| echo: false
+library(qrcode)
+plot(qr_code("https://tenomoto.github.io/rchu/"))
+```

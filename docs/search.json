@@ -7,53 +7,11 @@
     "text": "Rの使い方の例を掲載します。"
   },
   {
-    "objectID": "posts/help.html",
-    "href": "posts/help.html",
-    "title": "ヘルプ",
+    "objectID": "posts/qr.html",
+    "href": "posts/qr.html",
+    "title": "QR",
     "section": "",
-    "text": "RにはUNIXのmanのようなヘルプシステムがある。\n\nhelp(solve)\n\n次のようにすることもできる。\n?solve\nウェブブラウザでHTML版を表示するには\nhelp.start()\nとする。\n函数名などが分からない時は、\nhelp.search(solve)\nまたは\n\n??solve\n\nでヘルプを検索できる。\n例は次のようにして参照する。\n\nexample(solve)\n\n\nsolve&gt; hilbert &lt;- function(n) { i &lt;- 1:n; 1 / outer(i - 1, i, `+`) }\n\nsolve&gt; h8 &lt;- hilbert(8); h8\n          [,1]      [,2]      [,3]       [,4]       [,5]       [,6]       [,7]\n[1,] 1.0000000 0.5000000 0.3333333 0.25000000 0.20000000 0.16666667 0.14285714\n[2,] 0.5000000 0.3333333 0.2500000 0.20000000 0.16666667 0.14285714 0.12500000\n[3,] 0.3333333 0.2500000 0.2000000 0.16666667 0.14285714 0.12500000 0.11111111\n[4,] 0.2500000 0.2000000 0.1666667 0.14285714 0.12500000 0.11111111 0.10000000\n[5,] 0.2000000 0.1666667 0.1428571 0.12500000 0.11111111 0.10000000 0.09090909\n[6,] 0.1666667 0.1428571 0.1250000 0.11111111 0.10000000 0.09090909 0.08333333\n[7,] 0.1428571 0.1250000 0.1111111 0.10000000 0.09090909 0.08333333 0.07692308\n[8,] 0.1250000 0.1111111 0.1000000 0.09090909 0.08333333 0.07692308 0.07142857\n           [,8]\n[1,] 0.12500000\n[2,] 0.11111111\n[3,] 0.10000000\n[4,] 0.09090909\n[5,] 0.08333333\n[6,] 0.07692308\n[7,] 0.07142857\n[8,] 0.06666667\n\nsolve&gt; sh8 &lt;- solve(h8)\n\nsolve&gt; round(sh8 %*% h8, 3)\n     [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8]\n[1,]    1    0    0    0    0    0    0    0\n[2,]    0    1    0    0    0    0    0    0\n[3,]    0    0    1    0    0    0    0    0\n[4,]    0    0    0    1    0    0    0    0\n[5,]    0    0    0    0    1    0    0    0\n[6,]    0    0    0    0    0    1    0    0\n[7,]    0    0    0    0    0    0    1    0\n[8,]    0    0    0    0    0    0    0    1\n\nsolve&gt; A &lt;- hilbert(4)\n\nsolve&gt; A[] &lt;- as.complex(A)\n\nsolve&gt; ## might not be supported on all platforms\nsolve&gt; try(solve(A))\n        [,1]     [,2]     [,3]     [,4]\n[1,]   16+0i  -120+0i   240+0i  -140+0i\n[2,] -120+0i  1200+0i -2700+0i  1680+0i\n[3,]  240+0i -2700+0i  6480+0i -4200+0i\n[4,] -140+0i  1680+0i -4200+0i  2800+0i"
-  },
-  {
-    "objectID": "posts/enso.html",
-    "href": "posts/enso.html",
-    "title": "ENSO",
-    "section": "",
-    "text": "Historic Oceanic Niño Index and Niño 3.4 DataのData file with monthly & seasonal values since 1854をクリックしてNINO34のSSTデータを取得。 year.endは適宜編集する。\n\n# https://bmcnoldy.rsmas.miami.edu/tropics/oni/ONI_NINO34_1854-2022.txt\ndom &lt;- \"NINO34\"\nyear.start &lt;- 1854\nyear.end &lt;- 2024\nfname &lt;- paste0(\"ONI_\", dom, \"_\", year.start, \"-\", year.end, \".txt\")\nenso &lt;- read.table(fname, header = TRUE, skip = 9)\nenso$yearmon &lt;- as.Date(paste0(enso$YEAR, \"-\", enso$MON.MMM, \"-15\"))\nenso[enso==-99.99] = NA\n\n±0.5°Cの期間に陰影をつけ、10年毎にラベルをつけ、2年毎に目盛を打つ。\n\nplot.sst &lt;- function(yearmon, sst.anom){\n  plot(yearmon, sst.anom, xaxt=\"n\",\n    type=\"l\", xlab = \"time\",  ylab=\"°C\",\n    ylim=c(-3, 3))\n  axis(1, at=pretty(yearmon, 10), labels=format(pretty(yearmon, 10), \"%Y\"))\n  axis(1, at=pretty(yearmon, 40), labels = FALSE, tck = -0.02)\n  axis(3, at=pretty(yearmon, 40), labels = FALSE, tck = -0.02)\n  axis(4)\n  polygon(c(yearmon, rev(yearmon)),\n          c(ifelse(sst.anom &lt; 0.5, 0.5, sst.anom),\n            rep(0.5, length(sst.anom))), col=\"pink\", border = FALSE)\n  polygon(c(yearmon, rev(yearmon)),\n          c(ifelse(sst.anom &gt; -0.5, -0.5, sst.anom),\n            rep(-0.5, length(sst.anom))), col=\"lightblue\", border = FALSE)\n  abline(h = -2, col = \"lightblue\", lty=2, lwd=2)\n  abline(h = -1, col = \"lightblue\", lty=2, lwd=1.5)\n  abline(h = -0.5, col = \"lightblue\", lty=2, lwd=1)\n  abline(h =  0.5, col = \"pink\", lty=2, lwd=1)\n  abline(h =  1, col = \"pink\", lty=2, lwd=1.5)\n  abline(h =  2, col = \"pink\", lty=2, lwd=2)\n}\n\n2段に分けてプロットする。\n\npar(mfrow=c(2, 1), mar=c(3, 3, 1, 1))\nperiod &lt;- enso$yearmon &gt;= as.Date(\"1871-01-01\") & enso$yearmon &lt; as.Date(\"1950-01-01\")\nyearmon &lt;- enso$yearmon[period]\nsst.anom &lt;- enso$NINO34_ANOM[period]\nplot.sst(yearmon, sst.anom)\ntitle(paste(dom, \"SST anomaly\"))\nperiod &lt;- enso$yearmon &gt; as.Date(\"1950-01-01\") & !is.na(enso$NINO34_ANOM)\nyearmon &lt;- enso$yearmon[period]\nsst.anom &lt;- enso$NINO34_ANOM[period]\nplot.sst(yearmon, sst.anom)"
-  },
-  {
-    "objectID": "posts/dir2deg.html",
-    "href": "posts/dir2deg.html",
-    "title": "16方位を角度に",
-    "section": "",
-    "text": "アメダスの16方位を角度に変換する函数。 角度をseqで生成して、それぞれの名前を方角にする。 方角を与えると角度を返す。 ベクトル化されているので、複数の方角を渡すことができる。\n\ndir2deg &lt;- function(x) {\n  dir &lt;- seq(0, 360, length.out=17)[1:16]\n  names(dir) &lt;- c(\"北\", \"北北東\", \"北東\", \"東北東\",\n                  \"東\", \"東南東\", \"南東\", \"南南東\", \n                  \"南\", \"南南西\", \"南西\", \"西南西\", \n                  \"西\", \"西北西\", \"北西\", \"北北西\")\n  dir[x]\n}\ndir &lt;- c(\"北\", \"北北東\", \"北東\", \"東北東\")\ndir2deg(dir)\n\n    北 北北東   北東 東北東 \n   0.0   22.5   45.0   67.5"
-  },
-  {
-    "objectID": "posts/remove-alias.html",
-    "href": "posts/remove-alias.html",
-    "title": "PowerShellでR",
-    "section": "",
-    "text": "WindowsのPowerShellではRはInvoke-Historyのエイリアスになっているので、Rを起動するにはR.exeとタイプする必要がある。 このエイリアスを削除すれば、RとタイプすればRが起動するようになる。 エイリアスの削除はRemove-Aliasを用いる。 PowerShellの設定ファイル$profileをエディタで開いて次を記述する。\nRemove-Alias -Name R"
-  },
-  {
-    "objectID": "posts/interactive.html",
-    "href": "posts/interactive.html",
-    "title": "起動と終了",
-    "section": "",
-    "text": "UNIXのシェルのようにRを対話的に使うことができる。 入力データや、生成したデータや画像をディレクトリ（フォルダ）にまとめておくと便利。\nターミナルでディレクトリを作成して、そのディレクトリに移動する。\nmkdir work\ncd work\n続いてRを起動する。\nR\nWindows上のPowerShellの場合Rは前のコマンドを実行するInvoke-Historyをエイリアスなので、R.exeとタイプする必要がある。 Rを終了するにはq()を実行する。 終了時に生成したオブジェクトを.RDataに保存するか聞かれる。 作業ディレクトリを分けないと、同じ名前のオブジェクトがせぬふるまいの原因になりうる。 終了時にnを選択し、データを保存しない方がよい。\n\nRで使える文字はlocale依存だが、英数字と . _ である。\n.で始まる名前の2文字目に数字は使えない。\nコマンドは数式または代入。\n数式の場合は評価されて、表示され、破棄される。\n代入は評価されて、変数に値が渡され、自動的には表示されない。\n行の最後で不完全な場合、プロンプトが+になり、入力待ちになる。\nコマンドの履歴は上矢印キーで参照できる。\n\nファイルに保存されているコマンドは\nsource(\"commands.R\")\nで実行できる。\nsink(\"record.lis\")\nは実行後の出力先をファイルに振り向ける。\nsink()\nにより出力がコンソールに戻る。\nRのセッションで生成されたオブジェクトはobjects()またはls()で確認できる。\nrm(x, y, z)\nで削除できる。"
-  },
-  {
-    "objectID": "posts/vector.html",
-    "href": "posts/vector.html",
-    "title": "ベクトル",
-    "section": "",
-    "text": "Rではデータ構造を操作する。 スカラーが基本型である言語が多いが、Rでは、最も簡単なデータ構造はベクトル。 スカラーは長さ1のベクトル。 c()函数はベクトルをつなげたベクトルを返す。\n\nx &lt;- c(10.4, 5.6, 3.1, 6.4, 21.7)\n\n&lt;-は代入。向きを変えることもできる。\n\nc(10.4, 5.6, 3.1, 6.4, 21.7) -&gt; x\n\n結果を表示するには()で囲む。\n\n(a &lt;- 3)\n\n[1] 3\n\n\n式をコマンドとした場合は値は印字され、破棄される。\n\n1/x\n\n[1] 0.09615385 0.17857143 0.32258065 0.15625000 0.04608295\n\n\nc()はベクトルを引数に取ることもできる。\n\ny &lt;- c(x, 0, x)\n\n二つのxの間に要素を一つ加えた長さ11のベクトルがyに代入される。\n\nベクトルの算術式は要素毎で一番長いものに合わせる。短いベクトルは再利用される。"
-  },
-  {
-    "objectID": "posts/shift.html",
-    "href": "posts/shift.html",
-    "title": "shift",
-    "section": "",
-    "text": "Rにない函数。headとtailを使う。\n\nshift &lt;- function(x, n) {\n  if (n == 0) {\n    x\n  } else {\n    c(tail(x, n), head(x, -n))\n  }\n}\nshift(1:9,3)\n\n[1] 7 8 9 1 2 3 4 5 6\n\nshift(1:9,-2)\n\n[1] 3 4 5 6 7 8 9 1 2"
+    "text": "RでQRコードを作成するには、パッケージqrcodeを使う。\nlibrary(qrcode)\npng(\"qr.png\", 144, 144) # 144 x 144 pixels\nplot(qr_code(\"https://tenomoto.github.io/rchu/\"))\ndev.off()"
   },
   {
     "objectID": "posts/geta.html",
@@ -63,10 +21,59 @@
     "text": "曲線が重なっているとき、定数を加えてずらして描くと見やすくなる。 範囲を指定して、軸だけの空のグラフを作る。 y軸を反転させている。\n\nplot(NULL, type=\"n\", xlab=\"x\", ylab=\"y\", xlim=c(0, 2*pi), ylim=c(5, 1))\nx &lt;- seq(0, 2*pi, length.out=101)\nlines(x, sin(x) + 2)\nlines(x, cos(x) + 4)"
   },
   {
+    "objectID": "posts/shift.html",
+    "href": "posts/shift.html",
+    "title": "shift",
+    "section": "",
+    "text": "Rにない函数。headとtailを使う。\n\nshift &lt;- function(x, n) {\n  if (n == 0) {\n    x\n  } else {\n    c(tail(x, n), head(x, -n))\n  }\n}\nshift(1:9,3)\n\n[1] 7 8 9 1 2 3 4 5 6\n\nshift(1:9,-2)\n\n[1] 3 4 5 6 7 8 9 1 2"
+  },
+  {
+    "objectID": "posts/vector.html",
+    "href": "posts/vector.html",
+    "title": "ベクトル",
+    "section": "",
+    "text": "Rではデータ構造を操作する。 スカラーが基本型である言語が多いが、Rでは、最も簡単なデータ構造はベクトル。 スカラーは長さ1のベクトル。 c()函数はベクトルをつなげたベクトルを返す。\n\nx &lt;- c(10.4, 5.6, 3.1, 6.4, 21.7)\n\n&lt;-は代入。向きを変えることもできる。\n\nc(10.4, 5.6, 3.1, 6.4, 21.7) -&gt; x\n\n結果を表示するには()で囲む。\n\n(a &lt;- 3)\n\n[1] 3\n\n\n式をコマンドとした場合は値は印字され、破棄される。\n\n1/x\n\n[1] 0.09615385 0.17857143 0.32258065 0.15625000 0.04608295\n\n\nc()はベクトルを引数に取ることもできる。\n\ny &lt;- c(x, 0, x)\n\n二つのxの間に要素を一つ加えた長さ11のベクトルがyに代入される。\n\nベクトルの算術式は要素毎で一番長いものに合わせる。短いベクトルは再利用される。"
+  },
+  {
+    "objectID": "posts/interactive.html",
+    "href": "posts/interactive.html",
+    "title": "起動と終了",
+    "section": "",
+    "text": "UNIXのシェルのようにRを対話的に使うことができる。 入力データや、生成したデータや画像をディレクトリ（フォルダ）にまとめておくと便利。\nターミナルでディレクトリを作成して、そのディレクトリに移動する。\nmkdir work\ncd work\n続いてRを起動する。\nR\nWindows上のPowerShellの場合Rは前のコマンドを実行するInvoke-Historyをエイリアスなので、R.exeとタイプする必要がある。 Rを終了するにはq()を実行する。 終了時に生成したオブジェクトを.RDataに保存するか聞かれる。 作業ディレクトリを分けないと、同じ名前のオブジェクトがせぬふるまいの原因になりうる。 終了時にnを選択し、データを保存しない方がよい。\n\nRで使える文字はlocale依存だが、英数字と . _ である。\n.で始まる名前の2文字目に数字は使えない。\nコマンドは数式または代入。\n数式の場合は評価されて、表示され、破棄される。\n代入は評価されて、変数に値が渡され、自動的には表示されない。\n行の最後で不完全な場合、プロンプトが+になり、入力待ちになる。\nコマンドの履歴は上矢印キーで参照できる。\n\nファイルに保存されているコマンドは\nsource(\"commands.R\")\nで実行できる。\nsink(\"record.lis\")\nは実行後の出力先をファイルに振り向ける。\nsink()\nにより出力がコンソールに戻る。\nRのセッションで生成されたオブジェクトはobjects()またはls()で確認できる。\nrm(x, y, z)\nで削除できる。"
+  },
+  {
+    "objectID": "posts/remove-alias.html",
+    "href": "posts/remove-alias.html",
+    "title": "PowerShellでR",
+    "section": "",
+    "text": "WindowsのPowerShellではRはInvoke-Historyのエイリアスになっているので、Rを起動するにはR.exeとタイプする必要がある。 このエイリアスを削除すれば、RとタイプすればRが起動するようになる。 エイリアスの削除はRemove-Aliasを用いる。 PowerShellの設定ファイル$profileをエディタで開いて次を記述する。\nRemove-Alias -Name R"
+  },
+  {
+    "objectID": "posts/dir2deg.html",
+    "href": "posts/dir2deg.html",
+    "title": "16方位を角度に",
+    "section": "",
+    "text": "アメダスの16方位を角度に変換する函数。 角度をseqで生成して、それぞれの名前を方角にする。 方角を与えると角度を返す。 ベクトル化されているので、複数の方角を渡すことができる。\n\ndir2deg &lt;- function(x) {\n  dir &lt;- seq(0, 360, length.out=17)[1:16]\n  names(dir) &lt;- c(\"北\", \"北北東\", \"北東\", \"東北東\",\n                  \"東\", \"東南東\", \"南東\", \"南南東\", \n                  \"南\", \"南南西\", \"南西\", \"西南西\", \n                  \"西\", \"西北西\", \"北西\", \"北北西\")\n  dir[x]\n}\ndir &lt;- c(\"北\", \"北北東\", \"北東\", \"東北東\")\ndir2deg(dir)\n\n    北 北北東   北東 東北東 \n   0.0   22.5   45.0   67.5"
+  },
+  {
+    "objectID": "posts/enso.html",
+    "href": "posts/enso.html",
+    "title": "ENSO",
+    "section": "",
+    "text": "Historic Oceanic Niño Index and Niño 3.4 DataのData file with monthly & seasonal values since 1854をクリックしてNINO34のSSTデータを取得。 year.endは適宜編集する。\n\n# https://bmcnoldy.rsmas.miami.edu/tropics/oni/ONI_NINO34_1854-2022.txt\ndom &lt;- \"NINO34\"\nyear.start &lt;- 1854\nyear.end &lt;- 2024\nfname &lt;- paste0(\"ONI_\", dom, \"_\", year.start, \"-\", year.end, \".txt\")\nenso &lt;- read.table(fname, header = TRUE, skip = 9)\nenso$yearmon &lt;- as.Date(paste0(enso$YEAR, \"-\", enso$MON.MMM, \"-15\"))\nenso[enso==-99.99] = NA\n\n±0.5°Cの期間に陰影をつけ、10年毎にラベルをつけ、2年毎に目盛を打つ。\n\nplot.sst &lt;- function(yearmon, sst.anom){\n  plot(yearmon, sst.anom, xaxt=\"n\",\n    type=\"l\", xlab = \"time\",  ylab=\"°C\",\n    ylim=c(-3, 3))\n  axis(1, at=pretty(yearmon, 10), labels=format(pretty(yearmon, 10), \"%Y\"))\n  axis(1, at=pretty(yearmon, 40), labels = FALSE, tck = -0.02)\n  axis(3, at=pretty(yearmon, 40), labels = FALSE, tck = -0.02)\n  axis(4)\n  polygon(c(yearmon, rev(yearmon)),\n          c(ifelse(sst.anom &lt; 0.5, 0.5, sst.anom),\n            rep(0.5, length(sst.anom))), col=\"pink\", border = FALSE)\n  polygon(c(yearmon, rev(yearmon)),\n          c(ifelse(sst.anom &gt; -0.5, -0.5, sst.anom),\n            rep(-0.5, length(sst.anom))), col=\"lightblue\", border = FALSE)\n  abline(h = -2, col = \"lightblue\", lty=2, lwd=2)\n  abline(h = -1, col = \"lightblue\", lty=2, lwd=1.5)\n  abline(h = -0.5, col = \"lightblue\", lty=2, lwd=1)\n  abline(h =  0.5, col = \"pink\", lty=2, lwd=1)\n  abline(h =  1, col = \"pink\", lty=2, lwd=1.5)\n  abline(h =  2, col = \"pink\", lty=2, lwd=2)\n}\n\n2段に分けてプロットする。\n\npar(mfrow=c(2, 1), mar=c(3, 3, 1, 1))\nperiod &lt;- enso$yearmon &gt;= as.Date(\"1871-01-01\") & enso$yearmon &lt; as.Date(\"1950-01-01\")\nyearmon &lt;- enso$yearmon[period]\nsst.anom &lt;- enso$NINO34_ANOM[period]\nplot.sst(yearmon, sst.anom)\ntitle(paste(dom, \"SST anomaly\"))\nperiod &lt;- enso$yearmon &gt; as.Date(\"1950-01-01\") & !is.na(enso$NINO34_ANOM)\nyearmon &lt;- enso$yearmon[period]\nsst.anom &lt;- enso$NINO34_ANOM[period]\nplot.sst(yearmon, sst.anom)"
+  },
+  {
+    "objectID": "posts/help.html",
+    "href": "posts/help.html",
+    "title": "ヘルプ",
+    "section": "",
+    "text": "RにはUNIXのmanのようなヘルプシステムがある。\n\nhelp(solve)\n\n次のようにすることもできる。\n?solve\nウェブブラウザでHTML版を表示するには\nhelp.start()\nとする。\n函数名などが分からない時は、\nhelp.search(solve)\nまたは\n\n??solve\n\nでヘルプを検索できる。\n例は次のようにして参照する。\n\nexample(solve)\n\n\nsolve&gt; hilbert &lt;- function(n) { i &lt;- 1:n; 1 / outer(i - 1, i, `+`) }\n\nsolve&gt; h8 &lt;- hilbert(8); h8\n          [,1]      [,2]      [,3]       [,4]       [,5]       [,6]       [,7]\n[1,] 1.0000000 0.5000000 0.3333333 0.25000000 0.20000000 0.16666667 0.14285714\n[2,] 0.5000000 0.3333333 0.2500000 0.20000000 0.16666667 0.14285714 0.12500000\n[3,] 0.3333333 0.2500000 0.2000000 0.16666667 0.14285714 0.12500000 0.11111111\n[4,] 0.2500000 0.2000000 0.1666667 0.14285714 0.12500000 0.11111111 0.10000000\n[5,] 0.2000000 0.1666667 0.1428571 0.12500000 0.11111111 0.10000000 0.09090909\n[6,] 0.1666667 0.1428571 0.1250000 0.11111111 0.10000000 0.09090909 0.08333333\n[7,] 0.1428571 0.1250000 0.1111111 0.10000000 0.09090909 0.08333333 0.07692308\n[8,] 0.1250000 0.1111111 0.1000000 0.09090909 0.08333333 0.07692308 0.07142857\n           [,8]\n[1,] 0.12500000\n[2,] 0.11111111\n[3,] 0.10000000\n[4,] 0.09090909\n[5,] 0.08333333\n[6,] 0.07692308\n[7,] 0.07142857\n[8,] 0.06666667\n\nsolve&gt; sh8 &lt;- solve(h8)\n\nsolve&gt; round(sh8 %*% h8, 3)\n     [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8]\n[1,]    1    0    0    0    0    0    0    0\n[2,]    0    1    0    0    0    0    0    0\n[3,]    0    0    1    0    0    0    0    0\n[4,]    0    0    0    1    0    0    0    0\n[5,]    0    0    0    0    1    0    0    0\n[6,]    0    0    0    0    0    1    0    0\n[7,]    0    0    0    0    0    0    1    0\n[8,]    0    0    0    0    0    0    0    1\n\nsolve&gt; A &lt;- hilbert(4)\n\nsolve&gt; A[] &lt;- as.complex(A)\n\nsolve&gt; ## might not be supported on all platforms\nsolve&gt; try(solve(A))\n        [,1]     [,2]     [,3]     [,4]\n[1,]   16+0i  -120+0i   240+0i  -140+0i\n[2,] -120+0i  1200+0i -2700+0i  1680+0i\n[3,]  240+0i -2700+0i  6480+0i -4200+0i\n[4,] -140+0i  1680+0i -4200+0i  2800+0i"
+  },
+  {
     "objectID": "index.html",
     "href": "index.html",
     "title": "R中心生活（R中）",
     "section": "",
-    "text": "PowerShellでR\n\n\n\nwindows\n\n\n\nPowerShellのエイリアスを削除する\n\n\n\n榎本剛\n\n\n\n\n\n\n\n\n\n\n\n\nベクトル\n\n\n\nbasic\n\n\n\nベクトルの操作\n\n\n\n榎本剛\n\n\n\n\n\n\n\n\n\n\n\n\nヘルプ\n\n\n\nbasics\n\n\n\n函数や機能のヘルプを参照する\n\n\n\n榎本剛\n\n\n\n\n\n\n\n\n\n\n\n\n起動と終了\n\n\n\nbasics\n\n\n\nRを対話的に使う\n\n\n\n榎本剛\n\n\nNov 2, 2024\n\n\n\n\n\n\n\n\n\n\n\n\n下駄を履いたグラフ\n\n\n\ngraphics\n\n\n\n曲線に定数を加えて見やすく\n\n\n\n榎本剛\n\n\nNov 1, 2024\n\n\n\n\n\n\n\n\n\n\n\n\n16方位を角度に\n\n\n\nfunctions\n\n\n\n方角を角度に変換\n\n\n\n榎本剛\n\n\nOct 31, 2024\n\n\n\n\n\n\n\n\n\n\n\n\nshift\n\n\n\nfunctions\n\n\n\n要素をずらす\n\n\n\n榎本剛\n\n\nOct 31, 2024\n\n\n\n\n\n\n\n\n\n\n\n\nENSO\n\n\n\ngraphics\n\n\nclimate\n\n\n\nエルニーニョ・南方振動\n\n\n\n榎本剛\n\n\nOct 31, 2024\n\n\n\n\n\n\n\n\nNo matching items"
+    "text": "PowerShellでR\n\n\n\nwindows\n\n\n\nPowerShellのエイリアスを削除する\n\n\n\n榎本剛\n\n\n\n\n\n\n\n\n\n\n\n\nベクトル\n\n\n\nbasic\n\n\n\nベクトルの操作\n\n\n\n榎本剛\n\n\n\n\n\n\n\n\n\n\n\n\nヘルプ\n\n\n\nbasics\n\n\n\n函数や機能のヘルプを参照する\n\n\n\n榎本剛\n\n\n\n\n\n\n\n\n\n\n\n\nQR\n\n\n\ngraphics\n\n\npackage\n\n\n\nQRコード\n\n\n\n榎本剛\n\n\n\n\n\n\n\n\n\n\n\n\n起動と終了\n\n\n\nbasics\n\n\n\nRを対話的に使う\n\n\n\n榎本剛\n\n\nNov 2, 2024\n\n\n\n\n\n\n\n\n\n\n\n\n下駄を履いたグラフ\n\n\n\ngraphics\n\n\n\n曲線に定数を加えて見やすく\n\n\n\n榎本剛\n\n\nNov 1, 2024\n\n\n\n\n\n\n\n\n\n\n\n\n16方位を角度に\n\n\n\nfunctions\n\n\n\n方角を角度に変換\n\n\n\n榎本剛\n\n\nOct 31, 2024\n\n\n\n\n\n\n\n\n\n\n\n\nshift\n\n\n\nfunctions\n\n\n\n要素をずらす\n\n\n\n榎本剛\n\n\nOct 31, 2024\n\n\n\n\n\n\n\n\n\n\n\n\nENSO\n\n\n\ngraphics\n\n\nclimate\n\n\n\nエルニーニョ・南方振動\n\n\n\n榎本剛\n\n\nOct 31, 2024\n\n\n\n\n\n\n\n\nNo matching items"
   }
 ]
