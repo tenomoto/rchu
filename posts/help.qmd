@@ -8,7 +8,7 @@ categories:
 
 RにはUNIXのmanのようなヘルプシステムがある。
 
-```{r}
+```r
 help(solve)
 ```
 
@@ -34,7 +34,7 @@ help.search(solve)
 ```
 
 または
-```{r}
+```r
 ??solve
 ```
 
@@ -42,7 +42,7 @@ help.search(solve)
 
 例は次のようにして参照する。
 
-```{r}
+```r
 example(solve)
 ```
 

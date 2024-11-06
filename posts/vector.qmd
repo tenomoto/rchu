@@ -3,7 +3,7 @@ title: ベクトル
 description: ベクトルの操作
 author: 榎本剛
 categories:
-  - basic
+  - basics
 ---
 
 Rではデータ構造を操作する。
