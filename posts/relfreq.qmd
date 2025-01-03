@@ -1,0 +1,24 @@
+---
+title: "相対頻度のヒストグラム"
+description: "頻度でも密度でもなく"
+author: "榎本剛"
+date: 2025/1/3
+categories:
+  - stat
+  - graphics
+---
+
+`hist()`は折れ線を描く函数だが、`plot = FALSE`で統計のみにする。
+頻度を総数で割り、相対頻度にして`plot()`で描画する。
+
+```{r}
+n <- 1000
+m <- 5
+dof <- m - 1
+chisq <- rchisq(n, dof)
+h <- hist(chisq, breaks = 100, plot = FALSE)
+h$counts <- h$counts / sum(h$counts)
+plot(h, ylab = "relative frequency", axes = FALSE)
+axis(1)
+axis(2)
+```
