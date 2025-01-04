@@ -14,17 +14,13 @@ categories:
 折れ線を描くために、分割点は最初の点と最後の点の間の要素を値を、密度は全体を複製する。
 
 ```{r}
-duplicate.elements <- function(x, n = 2) {
-  c(t(matrix(rep(x, n), ncol = 2)))
-}
-
 n <- 1000
 m <- 5
 dof <- m - 1
 chisq <- rchisq(n, dof)
 h <- hist(chisq, breaks = 100, plot = FALSE)
-plot(c(h$breaks[1], duplicate.elements(h$breaks[2:(length(h$breaks)-1)]),
-       h$breaks[length(h$breaks)]), duplicate.elements(h$density),
+plot(c(h$breaks[1], rep(h$breaks[2:(length(h$breaks)-1)], each = 2),
+       h$breaks[length(h$breaks)]), rep(h$density, each = 2),
   xlab = "chisq", ylab = "density", type="l")
 lines(h$breaks, dchisq(h$breaks, dof), lw = 2)
 ```

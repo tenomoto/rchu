@@ -1,47 +1,5 @@
 [
   {
-    "objectID": "about.html",
-    "href": "about.html",
-    "title": "About",
-    "section": "",
-    "text": "Rの使い方の例を掲載します。"
-  },
-  {
-    "objectID": "posts/qr.html",
-    "href": "posts/qr.html",
-    "title": "QR",
-    "section": "",
-    "text": "RでQRコードを作成するには、パッケージqrcodeを使う。\nlibrary(qrcode)\npng(\"qr.png\", 144, 144) # 144 x 144 pixels\nplot(qr_code(\"https://tenomoto.github.io/rchu/\"))\ndev.off()"
-  },
-  {
-    "objectID": "posts/geta.html",
-    "href": "posts/geta.html",
-    "title": "下駄を履いたグラフ",
-    "section": "",
-    "text": "曲線が重なっているとき、定数を加えてずらして描くと見やすくなる。 範囲を指定して、軸だけの空のグラフを作る。 y軸を反転させている。\n\nplot(NULL, type=\"n\", xlab=\"x\", ylab=\"y\", xlim=c(0, 2*pi), ylim=c(5, 1))\nx &lt;- seq(0, 2*pi, length.out=101)\nlines(x, sin(x) + 2)\nlines(x, cos(x) + 4)"
-  },
-  {
-    "objectID": "posts/shift.html",
-    "href": "posts/shift.html",
-    "title": "shift",
-    "section": "",
-    "text": "Rにない函数。headとtailを使う。\n\nshift &lt;- function(x, n) {\n  if (n == 0) {\n    x\n  } else {\n    c(tail(x, n), head(x, -n))\n  }\n}\nshift(1:9,3)\n\n[1] 7 8 9 1 2 3 4 5 6\n\nshift(1:9,-2)\n\n[1] 3 4 5 6 7 8 9 1 2"
-  },
-  {
-    "objectID": "posts/step.html",
-    "href": "posts/step.html",
-    "title": "折れ線ヒストグラム",
-    "section": "",
-    "text": "ヒストグラムの統計結果hの分割点はh$breaks、密度はh$densityに入っている。 分割点の数は密度よりも一つ多い。\n折れ線を描くために、分割点は最初の点と最後の点の間の要素を値を、密度は全体を複製する。\n\nduplicate.elements &lt;- function(x, n = 2) {\n  c(t(matrix(rep(x, n), ncol = 2)))\n}\n\nn &lt;- 1000\nm &lt;- 5\ndof &lt;- m - 1\nchisq &lt;- rchisq(n, dof)\nh &lt;- hist(chisq, breaks = 100, plot = FALSE)\nplot(c(h$breaks[1], duplicate.elements(h$breaks[2:(length(h$breaks)-1)]),\n       h$breaks[length(h$breaks)]), duplicate.elements(h$density),\n  xlab = \"chisq\", ylab = \"density\", type=\"l\")\nlines(h$breaks, dchisq(h$breaks, dof), lw = 2)"
-  },
-  {
-    "objectID": "posts/vector.html",
-    "href": "posts/vector.html",
-    "title": "ベクトル",
-    "section": "",
-    "text": "Rではデータ構造を操作する。 スカラーが基本型である言語が多いが、Rでは、最も簡単なデータ構造はベクトル。 スカラーは長さ1のベクトル。 c()函数はベクトルをつなげたベクトルを返す。\n\nx &lt;- c(10.4, 5.6, 3.1, 6.4, 21.7)\n\n&lt;-は代入。向きを変えることもできる。\n\nc(10.4, 5.6, 3.1, 6.4, 21.7) -&gt; x\n\n結果を表示するには()で囲む。\n\n(a &lt;- 3)\n\n[1] 3\n\n\n式をコマンドとした場合は値は印字され、破棄される。\n\n1/x\n\n[1] 0.09615385 0.17857143 0.32258065 0.15625000 0.04608295\n\n\nc()はベクトルを引数に取ることもできる。\n\ny &lt;- c(x, 0, x)\n\n二つのxの間に要素を一つ加えた長さ11のベクトルがyに代入される。\n\nベクトルの算術式は要素毎で一番長いものに合わせる。短いベクトルは再利用される。"
-  },
-  {
     "objectID": "posts/interactive.html",
     "href": "posts/interactive.html",
     "title": "起動と終了",
@@ -56,11 +14,25 @@
     "text": "WindowsのPowerShellではRはInvoke-Historyのエイリアスになっているので、Rを起動するにはR.exeとタイプする必要がある。 このエイリアスを削除すれば、RとタイプすればRが起動するようになる。 エイリアスの削除はRemove-Aliasを用いる。 PowerShellの設定ファイル$profileをエディタで開いて次を記述する。\nRemove-Alias -Name R"
   },
   {
+    "objectID": "posts/vector.html",
+    "href": "posts/vector.html",
+    "title": "ベクトル",
+    "section": "",
+    "text": "Rではデータ構造を操作する。 スカラーが基本型である言語が多いが、Rでは、最も簡単なデータ構造はベクトル。 スカラーは長さ1のベクトル。 c()函数はベクトルをつなげたベクトルを返す。\n\nx &lt;- c(10.4, 5.6, 3.1, 6.4, 21.7)\n\n&lt;-は代入。向きを変えることもできる。\n\nc(10.4, 5.6, 3.1, 6.4, 21.7) -&gt; x\n\n結果を表示するには()で囲む。\n\n(a &lt;- 3)\n\n[1] 3\n\n\n式をコマンドとした場合は値は印字され、破棄される。\n\n1/x\n\n[1] 0.09615385 0.17857143 0.32258065 0.15625000 0.04608295\n\n\nc()はベクトルを引数に取ることもできる。\n\ny &lt;- c(x, 0, x)\n\n二つのxの間に要素を一つ加えた長さ11のベクトルがyに代入される。\n\nベクトルの算術式は要素毎で一番長いものに合わせる。短いベクトルは再利用される。"
+  },
+  {
     "objectID": "posts/relfreq.html",
     "href": "posts/relfreq.html",
     "title": "相対頻度のヒストグラム",
     "section": "",
     "text": "hist()は折れ線を描く函数だが、plot = FALSEで統計のみにする。 頻度を総数で割り、相対頻度にしてplot()で描画する。\n\nn &lt;- 1000\nm &lt;- 5\ndof &lt;- m - 1\nchisq &lt;- rchisq(n, dof)\nh &lt;- hist(chisq, breaks = 100, plot = FALSE)\nh$counts &lt;- h$counts / sum(h$counts)\nplot(h, ylab = \"relative frequency\", axes = FALSE)\naxis(1)\naxis(2)"
+  },
+  {
+    "objectID": "posts/step.html",
+    "href": "posts/step.html",
+    "title": "折れ線ヒストグラム",
+    "section": "",
+    "text": "ヒストグラムの統計結果hの分割点はh$breaks、密度はh$densityに入っている。 分割点の数は密度よりも一つ多い。\n折れ線を描くために、分割点は最初の点と最後の点の間の要素を値を、密度は全体を複製する。\n\nn &lt;- 1000\nm &lt;- 5\ndof &lt;- m - 1\nchisq &lt;- rchisq(n, dof)\nh &lt;- hist(chisq, breaks = 100, plot = FALSE)\nplot(c(h$breaks[1], rep(h$breaks[2:(length(h$breaks)-1)], each = 2),\n       h$breaks[length(h$breaks)]), rep(h$density, each = 2),\n  xlab = \"chisq\", ylab = \"density\", type=\"l\")\nlines(h$breaks, dchisq(h$breaks, dof), lw = 2)"
   },
   {
     "objectID": "posts/dir2deg.html",
@@ -70,11 +42,25 @@
     "text": "アメダスの16方位を角度に変換する函数。 角度をseqで生成して、それぞれの名前を方角にする。 方角を与えると角度を返す。 ベクトル化されているので、複数の方角を渡すことができる。\n\ndir2deg &lt;- function(x) {\n  dir &lt;- seq(0, 360, length.out=17)[1:16]\n  names(dir) &lt;- c(\"北\", \"北北東\", \"北東\", \"東北東\",\n                  \"東\", \"東南東\", \"南東\", \"南南東\", \n                  \"南\", \"南南西\", \"南西\", \"西南西\", \n                  \"西\", \"西北西\", \"北西\", \"北北西\")\n  dir[x]\n}\ndir &lt;- c(\"北\", \"北北東\", \"北東\", \"東北東\")\ndir2deg(dir)\n\n    北 北北東   北東 東北東 \n   0.0   22.5   45.0   67.5"
   },
   {
+    "objectID": "posts/shift.html",
+    "href": "posts/shift.html",
+    "title": "shift",
+    "section": "",
+    "text": "Rにない函数。headとtailを使う。\n\nshift &lt;- function(x, n) {\n  if (n == 0) {\n    x\n  } else {\n    c(tail(x, n), head(x, -n))\n  }\n}\nshift(1:9,3)\n\n[1] 7 8 9 1 2 3 4 5 6\n\nshift(1:9,-2)\n\n[1] 3 4 5 6 7 8 9 1 2"
+  },
+  {
     "objectID": "posts/enso.html",
     "href": "posts/enso.html",
     "title": "ENSO",
     "section": "",
     "text": "Historic Oceanic Niño Index and Niño 3.4 DataのData file with monthly & seasonal values since 1854をクリックしてNINO34のSSTデータを取得。 year.endは適宜編集する。\n\n# https://bmcnoldy.rsmas.miami.edu/tropics/oni/ONI_NINO34_1854-2022.txt\ndom &lt;- \"NINO34\"\nyear.start &lt;- 1854\nyear.end &lt;- 2024\nfname &lt;- paste0(\"ONI_\", dom, \"_\", year.start, \"-\", year.end, \".txt\")\nenso &lt;- read.table(fname, header = TRUE, skip = 9)\nenso$yearmon &lt;- as.Date(paste0(enso$YEAR, \"-\", enso$MON.MMM, \"-15\"))\nenso[enso==-99.99] = NA\n\n±0.5°Cの期間に陰影をつけ、10年毎にラベルをつけ、2年毎に目盛を打つ。\n\nplot.sst &lt;- function(yearmon, sst.anom){\n  plot(yearmon, sst.anom, xaxt=\"n\",\n    type=\"l\", xlab = \"time\",  ylab=\"°C\",\n    ylim=c(-3, 3))\n  axis(1, at=pretty(yearmon, 10), labels=format(pretty(yearmon, 10), \"%Y\"))\n  axis(1, at=pretty(yearmon, 40), labels = FALSE, tck = -0.02)\n  axis(3, at=pretty(yearmon, 40), labels = FALSE, tck = -0.02)\n  axis(4)\n  polygon(c(yearmon, rev(yearmon)),\n          c(ifelse(sst.anom &lt; 0.5, 0.5, sst.anom),\n            rep(0.5, length(sst.anom))), col=\"pink\", border = FALSE)\n  polygon(c(yearmon, rev(yearmon)),\n          c(ifelse(sst.anom &gt; -0.5, -0.5, sst.anom),\n            rep(-0.5, length(sst.anom))), col=\"lightblue\", border = FALSE)\n  abline(h = -2, col = \"lightblue\", lty=2, lwd=2)\n  abline(h = -1, col = \"lightblue\", lty=2, lwd=1.5)\n  abline(h = -0.5, col = \"lightblue\", lty=2, lwd=1)\n  abline(h =  0.5, col = \"pink\", lty=2, lwd=1)\n  abline(h =  1, col = \"pink\", lty=2, lwd=1.5)\n  abline(h =  2, col = \"pink\", lty=2, lwd=2)\n}\n\n2段に分けてプロットする。\n\npar(mfrow=c(2, 1), mar=c(3, 3, 1, 1))\nperiod &lt;- enso$yearmon &gt;= as.Date(\"1871-01-01\") & enso$yearmon &lt; as.Date(\"1950-01-01\")\nyearmon &lt;- enso$yearmon[period]\nsst.anom &lt;- enso$NINO34_ANOM[period]\nplot.sst(yearmon, sst.anom)\ntitle(paste(dom, \"SST anomaly\"))\nperiod &lt;- enso$yearmon &gt; as.Date(\"1950-01-01\") & !is.na(enso$NINO34_ANOM)\nyearmon &lt;- enso$yearmon[period]\nsst.anom &lt;- enso$NINO34_ANOM[period]\nplot.sst(yearmon, sst.anom)"
+  },
+  {
+    "objectID": "posts/geta.html",
+    "href": "posts/geta.html",
+    "title": "下駄を履いたグラフ",
+    "section": "",
+    "text": "曲線が重なっているとき、定数を加えてずらして描くと見やすくなる。 範囲を指定して、軸だけの空のグラフを作る。 y軸を反転させている。\n\nplot(NULL, type=\"n\", xlab=\"x\", ylab=\"y\", xlim=c(0, 2*pi), ylim=c(5, 1))\nx &lt;- seq(0, 2*pi, length.out=101)\nlines(x, sin(x) + 2)\nlines(x, cos(x) + 4)"
   },
   {
     "objectID": "posts/help.html",
@@ -84,10 +70,24 @@
     "text": "RにはUNIXのmanのようなヘルプシステムがある。\nhelp(solve)\n次のようにすることもできる。\n?solve\nウェブブラウザでHTML版を表示するには\nhelp.start()\nとする。\n函数名などが分からない時は、\nhelp.search(solve)\nまたは\n??solve\nでヘルプを検索できる。\n例は次のようにして参照する。\nexample(solve)"
   },
   {
+    "objectID": "posts/qr.html",
+    "href": "posts/qr.html",
+    "title": "QR",
+    "section": "",
+    "text": "RでQRコードを作成するには、パッケージqrcodeを使う。\nlibrary(qrcode)\npng(\"qr.png\", 144, 144) # 144 x 144 pixels\nplot(qr_code(\"https://tenomoto.github.io/rchu/\"))\ndev.off()"
+  },
+  {
     "objectID": "index.html",
     "href": "index.html",
     "title": "R中心生活（R中）",
     "section": "",
     "text": "PowerShellでR\n\n\n\nwindows\n\n\n\nPowerShellのエイリアスを削除する\n\n\n\n榎本剛\n\n\n\n\n\n\n\n\n\n\n\n\nベクトル\n\n\n\nbasics\n\n\n\nベクトルの操作\n\n\n\n榎本剛\n\n\n\n\n\n\n\n\n\n\n\n\nヘルプ\n\n\n\nbasics\n\n\n\n函数や機能のヘルプを参照する\n\n\n\n榎本剛\n\n\n\n\n\n\n\n\n\n\n\n\nQR\n\n\n\ngraphics\n\n\npackage\n\n\n\nQRコード\n\n\n\n榎本剛\n\n\n\n\n\n\n\n\n\n\n\n\n相対頻度のヒストグラム\n\n\n\nstat\n\n\ngraphics\n\n\n\n頻度でも密度でもなく\n\n\n\n榎本剛\n\n\nJan 3, 2025\n\n\n\n\n\n\n\n\n\n\n\n\n折れ線ヒストグラム\n\n\n\nstat\n\n\ngraphics\n\n\n\n棒グラフの代わりに折れ線で\n\n\n\n榎本剛\n\n\nJan 3, 2025\n\n\n\n\n\n\n\n\n\n\n\n\n起動と終了\n\n\n\nbasics\n\n\n\nRを対話的に使う\n\n\n\n榎本剛\n\n\nNov 2, 2024\n\n\n\n\n\n\n\n\n\n\n\n\n下駄を履いたグラフ\n\n\n\ngraphics\n\n\n\n曲線に定数を加えて見やすく\n\n\n\n榎本剛\n\n\nNov 1, 2024\n\n\n\n\n\n\n\n\n\n\n\n\n16方位を角度に\n\n\n\nfunctions\n\n\n\n方角を角度に変換\n\n\n\n榎本剛\n\n\nOct 31, 2024\n\n\n\n\n\n\n\n\n\n\n\n\nshift\n\n\n\nfunctions\n\n\n\n要素をずらす\n\n\n\n榎本剛\n\n\nOct 31, 2024\n\n\n\n\n\n\n\n\n\n\n\n\nENSO\n\n\n\ngraphics\n\n\nclimate\n\n\n\nエルニーニョ・南方振動\n\n\n\n榎本剛\n\n\nOct 31, 2024\n\n\n\n\n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "Rの使い方の例を掲載します。"
   }
 ]
