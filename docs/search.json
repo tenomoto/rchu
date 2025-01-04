@@ -32,7 +32,7 @@
     "href": "posts/step.html",
     "title": "折れ線ヒストグラム",
     "section": "",
-    "text": "ヒストグラムの統計結果hの分割点はh$breaks、密度はh$densityに入っている。 分割点の数は密度よりも一つ多い。\n折れ線を描くために、分割点は最初の点と最後の点の間の要素を値を、密度は全体を複製する。\n\nn &lt;- 1000\nm &lt;- 5\ndof &lt;- m - 1\nchisq &lt;- rchisq(n, dof)\nh &lt;- hist(chisq, breaks = 100, plot = FALSE)\nplot(c(h$breaks[1], rep(h$breaks[2:(length(h$breaks)-1)], each = 2),\n       h$breaks[length(h$breaks)]), rep(h$density, each = 2),\n  xlab = \"chisq\", ylab = \"density\", type=\"l\")\nlines(h$breaks, dchisq(h$breaks, dof), lw = 2)"
+    "text": "ヒストグラムの統計結果hの分割点はh$breaks、密度はh$densityに入っている。 分割点の数は密度よりも一つ多い。\nstepfun()を用いると簡単。\\((x_1, x_2, \\dots, x_n)\\)よりも\\((y_0, y_1, \\dots, y_n)\\)が一つ多いことに注意。既定では区間\\([x_{i}, x_{i+1}]\\)の一定値\\(c_i = (1 - f)y_i + fy_{i+1}\\)なので、区間の右の重み\\(f\\)を0にすると\\(x_i\\)に\\(y_i\\)が使われる。\n\nn &lt;- 1000\nm &lt;- 5\ndof &lt;- m - 1\nchisq &lt;- rchisq(n, dof)\nh &lt;- hist(chisq, breaks = 100, plot = FALSE)\nplot(h$breaks, dchisq(h$breaks, dof), type = \"l\", lwd = 2, xlab = \"chisq\", ylab = \"density\", ylim = c(0, max(h$density)))\nlines(stepfun(h$breaks, c(NA, h$density, NA), f = 0), do.points = FALSE)\n\n\n\n\nstepfun()を使わない方法。折れ線を描くために、分割点は最初の点と最後の点の間の要素を値を、密度は全体を複製する。\n\nn &lt;- 1000\nm &lt;- 5\ndof &lt;- m - 1\nchisq &lt;- rchisq(n, dof)\nh &lt;- hist(chisq, breaks = 100, plot = FALSE)\nplot(c(h$breaks[1], rep(h$breaks[2:(length(h$breaks)-1)], each = 2),\n       h$breaks[length(h$breaks)]), rep(h$density, each = 2),\n  xlab = \"chisq\", ylab = \"density\", type=\"l\")\nlines(h$breaks, dchisq(h$breaks, dof), lw = 2)"
   },
   {
     "objectID": "posts/dir2deg.html",

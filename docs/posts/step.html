@@ -96,6 +96,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -185,19 +187,32 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 <p>ヒストグラムの統計結果<code>h</code>の分割点は<code>h$breaks</code>、密度は<code>h$density</code>に入っている。 分割点の数は密度よりも一つ多い。</p>
-<p>折れ線を描くために、分割点は最初の点と最後の点の間の要素を値を、密度は全体を複製する。</p>
+<p><code>stepfun()</code>を用いると簡単。<span class="math inline">\((x_1, x_2, \dots, x_n)\)</span>よりも<span class="math inline">\((y_0, y_1, \dots, y_n)\)</span>が一つ多いことに注意。既定では区間<span class="math inline">\([x_{i}, x_{i+1}]\)</span>の一定値<span class="math inline">\(c_i = (1 - f)y_i + fy_{i+1}\)</span>なので、区間の右の重み<span class="math inline">\(f\)</span>を0にすると<span class="math inline">\(x_i\)</span>に<span class="math inline">\(y_i\)</span>が使われる。</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="dv">5</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>dof <span class="ot">&lt;-</span> m <span class="sc">-</span> <span class="dv">1</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>chisq <span class="ot">&lt;-</span> <span class="fu">rchisq</span>(n, dof)</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="fu">hist</span>(chisq, <span class="at">breaks =</span> <span class="dv">100</span>, <span class="at">plot =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">c</span>(h<span class="sc">$</span>breaks[<span class="dv">1</span>], <span class="fu">rep</span>(h<span class="sc">$</span>breaks[<span class="dv">2</span><span class="sc">:</span>(<span class="fu">length</span>(h<span class="sc">$</span>breaks)<span class="sc">-</span><span class="dv">1</span>)], <span class="at">each =</span> <span class="dv">2</span>),</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>       h<span class="sc">$</span>breaks[<span class="fu">length</span>(h<span class="sc">$</span>breaks)]), <span class="fu">rep</span>(h<span class="sc">$</span>density, <span class="at">each =</span> <span class="dv">2</span>),</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">xlab =</span> <span class="st">"chisq"</span>, <span class="at">ylab =</span> <span class="st">"density"</span>, <span class="at">type=</span><span class="st">"l"</span>)</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(h<span class="sc">$</span>breaks, <span class="fu">dchisq</span>(h<span class="sc">$</span>breaks, dof), <span class="at">lw =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(h<span class="sc">$</span>breaks, <span class="fu">dchisq</span>(h<span class="sc">$</span>breaks, dof), <span class="at">type =</span> <span class="st">"l"</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">xlab =</span> <span class="st">"chisq"</span>, <span class="at">ylab =</span> <span class="st">"density"</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fu">max</span>(h<span class="sc">$</span>density)))</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">stepfun</span>(h<span class="sc">$</span>breaks, <span class="fu">c</span>(<span class="cn">NA</span>, h<span class="sc">$</span>density, <span class="cn">NA</span>), <span class="at">f =</span> <span class="dv">0</span>), <span class="at">do.points =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="step_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p><code>stepfun()</code>を使わない方法。折れ線を描くために、分割点は最初の点と最後の点の間の要素を値を、密度は全体を複製する。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="dv">5</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>dof <span class="ot">&lt;-</span> m <span class="sc">-</span> <span class="dv">1</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>chisq <span class="ot">&lt;-</span> <span class="fu">rchisq</span>(n, dof)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="fu">hist</span>(chisq, <span class="at">breaks =</span> <span class="dv">100</span>, <span class="at">plot =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">c</span>(h<span class="sc">$</span>breaks[<span class="dv">1</span>], <span class="fu">rep</span>(h<span class="sc">$</span>breaks[<span class="dv">2</span><span class="sc">:</span>(<span class="fu">length</span>(h<span class="sc">$</span>breaks)<span class="sc">-</span><span class="dv">1</span>)], <span class="at">each =</span> <span class="dv">2</span>),</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>       h<span class="sc">$</span>breaks[<span class="fu">length</span>(h<span class="sc">$</span>breaks)]), <span class="fu">rep</span>(h<span class="sc">$</span>density, <span class="at">each =</span> <span class="dv">2</span>),</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">xlab =</span> <span class="st">"chisq"</span>, <span class="at">ylab =</span> <span class="st">"density"</span>, <span class="at">type=</span><span class="st">"l"</span>)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(h<span class="sc">$</span>breaks, <span class="fu">dchisq</span>(h<span class="sc">$</span>breaks, dof), <span class="at">lw =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="step_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 
