@@ -1,0 +1,79 @@
+---
+title: ベクトル化
+description: ループ回避して高速化する
+author: 榎本剛
+categories:
+  - performance
+  - table
+---
+
+5つの乱数を2組生成して、分散と共分散を多数計算する。
+
+```{r}
+n <- 10000
+m <- 5
+dof <- m - 1
+```
+
+`for`ループで書いたが、`n`が大きくなると遅くなる。
+
+```{r}
+set.seed(514)
+start <- Sys.time()
+
+for (i in 1:n) {
+  x <- scale(rnorm(m), scale = FALSE)
+  xx <- var(x)
+  y <- scale(rnorm(m), scale = FALSE)
+  yx <- cov(x, y)
+}
+t.loop <- Sys.time() - start
+```
+
+`apply`を使ってループを回避したが、全く速くならず、むしろ遅くなる。
+`n=1000000`のように大きくなると、`cov()`の計算が原因でメモリ（ヒープ）が不足する。
+種は固定しているが、`rnorm()`の呼び出しの順番が異なるので同一の結果にはならない。
+
+```{r}
+set.seed(514)
+start <- Sys.time()
+
+x <- matrix(rnorm(m * n), nrow = m) |>
+  apply(2, scale, scale = FALSE)
+y <- matrix(rnorm(m * n), nrow = m) |>
+  apply(2, scale, scale = FALSE)
+Pb <- apply(x, 2, var)
+yx <- diag(cov(x, y)) 
+#yx <- numeric(n)
+#for (i in 1:n) {
+#  yx[i] <- cov(Xb[, i], y[, i])
+#} 
+t.apply <- Sys.time() - start
+```
+`scale()`には`matrix`を与えることができ、列に対する正規化を行う。
+分散は偏差平方平均、共分散は偏差の積の平均なので、要素積をして平均する。
+`apply(x^2, 2, mean)`や`apply(x * y, 2, mean)`よりも`colMeans()`の方が速い。
+平均は標本数で割るので、係数を調整する。
+
+```{r}
+set.seed(514)
+start <- Sys.time()
+
+x <- scale(matrix(rnorm(m * n), nrow = m), scale = FALSE) 
+y <- scale(matrix(rnorm(m * n), nrow = m), scale = FALSE)
+v <- colMeans(x^2) * m / dof
+yx <- colMeans(x * y) * m / dof
+
+t.vec <- Sys.time() - start
+```
+```{r}
+#| echo: false
+
+library(tinytable)
+
+code <- c("loop", "apply", "vec")
+time <- as.numeric(c(t.loop, t.apply, t.vec))
+speedup <- as.numeric(t.loop) / time
+df <- data.frame(code, time, speedup)
+tt(df, digits = 2, align = "d")
+```
