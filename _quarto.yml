@@ -1,7 +1,8 @@
 project:
   type: website
   output-dir: docs
-
+bibliography: refs.bib
+csl: american-meteorological-society.csl
 website:
   title: "R中心生活"
   navbar:

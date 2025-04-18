@@ -1,0 +1,48 @@
+---
+title: hcl
+description: HCLで色選び
+author: 榎本剛
+categories:
+  - graphics
+  - package
+---
+
+人が感じる色は赤と緑、黄色と青の二軸で表すのが自然とされている[@Ihaka:2003]。
+これを極座標で表したときの角度が色調（hue）、動径が彩度（chroma）である。
+さらに輝度（luminance）を加えた円筒座標をHCL色空間という。
+Rの既定の色空間はHCLである。
+
+知覚に関する色の選択として次のような条件が挙げられる[@Ihaka:2003]。
+
+- グラフの広い領域に高い彩度を使うことは避ける。注意が長く続き、残像により注意をそらす可能性があるためである。
+- グラフで面積が重要なら、近い彩度の色を使う。明るい色は暗い色よりも、面積を大きく見えるためである。
+- 色をグループに属することを表すなら、色は見分けやすくすべきである。
+
+これらの条件を満たす簡単な方法は、HCLを使うことである。
+その方法は、知覚の上で一様な色空間で、輝度と彩度を同じに、色調を等間隔にするというものである。
+
+`hcl.pals()`でパレットの名前の一覧を表示できる。
+
+```{r}
+hcl.pals()
+```
+
+既定は`viridis`である。
+`hcl.pals()`の引数に文字列で名前を渡すと、パレットが変わる。
+
+`hcl.colors()`に色の数を渡すと、16進数でRGBの文字列ベクトルが返される。
+
+```{r}
+hcl.colors(5)
+```
+
+[colorspace](https://cran.r-project.org/web/packages/colorspace/index.html)を使うと、パレットを描画できる。[@Zeileis-etal:2020]
+
+```{r}
+library(colorspace)
+hcl_palettes(plot = TRUE)
+```
+
+- [colorspace: A Toolbox for Manipulating and Assessing Colors and Palettes](https://colorspace.r-forge.r-project.org/articles/colorspace.html)
+- [HCL-Based Color Palettes in grDevices](https://blog.r-project.org/2019/04/01/hcl-based-color-palettes-in-grdevices/)
+- [デザインで「人間が感覚的に見分けやすい色」を選ぶ方法をデータ可視化のプロが解説](https://gigazine.net/news/20200629-hcl-color-space/)

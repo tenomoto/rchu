@@ -7,9 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="榎本剛">
-<meta name="description" content="函数や機能のヘルプを参照する">
+<meta name="description" content="HCLで色選び">
 
-<title>R中心生活 - ヘルプ</title>
+<title>R中心生活 - hcl</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -56,7 +56,26 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -147,15 +166,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">ヘルプ</h1>
+<h1 class="title">hcl</h1>
   <div class="quarto-categories">
-    <div class="quarto-category">basics</div>
+    <div class="quarto-category">graphics</div>
+    <div class="quarto-category">package</div>
   </div>
   </div>
 
 <div>
   <div class="description">
-    函数や機能のヘルプを参照する
+    HCLで色選び
   </div>
 </div>
 
@@ -176,24 +196,82 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<p>RにはUNIXのmanのようなヘルプシステムがある。</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">help</span>(solve)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>次のようにすることもできる。</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>?solve</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>ウェブブラウザでHTML版を表示するには</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">help.start</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>とする。</p>
-<p>函数名などが分からない時は、</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">help.search</span>(solve)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>または</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>??solve</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>でヘルプを検索できる。</p>
-<p>例は次のようにして参照する。</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">example</span>(solve)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>人が感じる色は赤と緑、黄色と青の二軸で表すのが自然とされている<span class="citation" data-cites="Ihaka:2003">(<a href="#ref-Ihaka:2003" role="doc-biblioref">Ihaka 2003</a>)</span>。 これを極座標で表したときの角度が色調（hue）、動径が彩度（chroma）である。 さらに輝度（luminance）を加えた円筒座標をHCL色空間という。 Rの既定の色空間はHCLである。</p>
+<p>知覚に関する色の選択として次のような条件が挙げられる<span class="citation" data-cites="Ihaka:2003">(<a href="#ref-Ihaka:2003" role="doc-biblioref">Ihaka 2003</a>)</span>。</p>
+<ul>
+<li>グラフの広い領域に高い彩度を使うことは避ける。注意が長く続き、残像により注意をそらす可能性があるためである。</li>
+<li>グラフで面積が重要なら、近い彩度の色を使う。明るい色は暗い色よりも、面積を大きく見えるためである。</li>
+<li>色をグループに属することを表すなら、色は見分けやすくすべきである。</li>
+</ul>
+<p>これらの条件を満たす簡単な方法は、HCLを使うことである。 その方法は、知覚の上で一様な色空間で、輝度と彩度を同じに、色調を等間隔にするというものである。</p>
+<p><code>hcl.pals()</code>でパレットの名前の一覧を表示できる。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hcl.pals</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  [1] "Pastel 1"      "Dark 2"        "Dark 3"        "Set 2"        
+  [5] "Set 3"         "Warm"          "Cold"          "Harmonic"     
+  [9] "Dynamic"       "Grays"         "Light Grays"   "Blues 2"      
+ [13] "Blues 3"       "Purples 2"     "Purples 3"     "Reds 2"       
+ [17] "Reds 3"        "Greens 2"      "Greens 3"      "Oslo"         
+ [21] "Purple-Blue"   "Red-Purple"    "Red-Blue"      "Purple-Orange"
+ [25] "Purple-Yellow" "Blue-Yellow"   "Green-Yellow"  "Red-Yellow"   
+ [29] "Heat"          "Heat 2"        "Terrain"       "Terrain 2"    
+ [33] "Viridis"       "Plasma"        "Inferno"       "Rocket"       
+ [37] "Mako"          "Dark Mint"     "Mint"          "BluGrn"       
+ [41] "Teal"          "TealGrn"       "Emrld"         "BluYl"        
+ [45] "ag_GrnYl"      "Peach"         "PinkYl"        "Burg"         
+ [49] "BurgYl"        "RedOr"         "OrYel"         "Purp"         
+ [53] "PurpOr"        "Sunset"        "Magenta"       "SunsetDark"   
+ [57] "ag_Sunset"     "BrwnYl"        "YlOrRd"        "YlOrBr"       
+ [61] "OrRd"          "Oranges"       "YlGn"          "YlGnBu"       
+ [65] "Reds"          "RdPu"          "PuRd"          "Purples"      
+ [69] "PuBuGn"        "PuBu"          "Greens"        "BuGn"         
+ [73] "GnBu"          "BuPu"          "Blues"         "Lajolla"      
+ [77] "Turku"         "Hawaii"        "Batlow"        "Blue-Red"     
+ [81] "Blue-Red 2"    "Blue-Red 3"    "Red-Green"     "Purple-Green" 
+ [85] "Purple-Brown"  "Green-Brown"   "Blue-Yellow 2" "Blue-Yellow 3"
+ [89] "Green-Orange"  "Cyan-Magenta"  "Tropic"        "Broc"         
+ [93] "Cork"          "Vik"           "Berlin"        "Lisbon"       
+ [97] "Tofino"        "ArmyRose"      "Earth"         "Fall"         
+[101] "Geyser"        "TealRose"      "Temps"         "PuOr"         
+[105] "RdBu"          "RdGy"          "PiYG"          "PRGn"         
+[109] "BrBG"          "RdYlBu"        "RdYlGn"        "Spectral"     
+[113] "Zissou 1"      "Cividis"       "Roma"         </code></pre>
+</div>
+</div>
+<p>既定は<code>viridis</code>である。 <code>hcl.pals()</code>の引数に文字列で名前を渡すと、パレットが変わる。</p>
+<p><code>hcl.colors()</code>に色の数を渡すと、16進数でRGBの文字列ベクトルが返される。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hcl.colors</span>(<span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "#4B0055" "#00588B" "#009B95" "#53CC67" "#FDE333"</code></pre>
+</div>
+</div>
+<p><a href="https://cran.r-project.org/web/packages/colorspace/index.html">colorspace</a>を使うと、パレットを描画できる。<span class="citation" data-cites="Zeileis-etal:2020">(<a href="#ref-Zeileis-etal:2020" role="doc-biblioref">Zeileis et al. 2020</a>)</span></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(colorspace)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">hcl_palettes</span>(<span class="at">plot =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="hcl_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<ul>
+<li><a href="https://colorspace.r-forge.r-project.org/articles/colorspace.html">colorspace: A Toolbox for Manipulating and Assessing Colors and Palettes</a></li>
+<li><a href="https://blog.r-project.org/2019/04/01/hcl-based-color-palettes-in-grdevices/">HCL-Based Color Palettes in grDevices</a></li>
+<li><a href="https://gigazine.net/news/20200629-hcl-color-space/">デザインで「人間が感覚的に見分けやすい色」を選ぶ方法をデータ可視化のプロが解説</a></li>
+</ul>
 
 
 
-</main> <!-- /main -->
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-Ihaka:2003" class="csl-entry" role="listitem">
+Ihaka, R., 2003: Colour for <span>Presentation</span> <span>Graphics</span>. <em>Proc. 3rd <span>International</span> <span>Workshop</span> on <span>Distributed</span> <span>Statistical</span> <span>Computing</span></em>, Vienna, Austria <a href="https://www.r-project.org/conferences/DSC-2003/Proceedings/Ihaka.pdf">https://www.r-project.org/conferences/DSC-2003/Proceedings/Ihaka.pdf</a>.
+</div>
+<div id="ref-Zeileis-etal:2020" class="csl-entry" role="listitem">
+Zeileis, A., J. C. Fisher, K. Hornik, R. Ihaka, C. D. McWhite, P. Murrell, R. Stauffer, and C. O. Wilke, 2020: Colorspace: <span>A</span> toolbox for manipulating and assessing colors and palettes. <em>J. Stat. Software</em>, <strong>96</strong>, <a href="https://doi.org/10.18637/jss.v096.i01">https://doi.org/10.18637/jss.v096.i01</a>.
+</div>
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
