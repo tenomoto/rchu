@@ -226,30 +226,26 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>低緯度（<code>lat1</code>）上で経度が増加するように、高緯度では <code>rev()</code> を使って減少させる。 最後に視点を追加して閉じている。 ホームディレクトリの<code>~/.local/share/naturalearth/ne_50m</code> に Natural Earth のデータを置いておく。 <code>terra</code></p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#: warning: false</span></span>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(terra)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(terra)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>terra 1.8.5</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>nedir <span class="ot">&lt;-</span> <span class="fu">path.expand</span>(<span class="st">"~/.local/share/naturalearth/ne_50m"</span>)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>lshp <span class="ot">&lt;-</span> <span class="fu">file.path</span>(nedir, <span class="st">"/ne_50m_land.shp"</span>)</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>l50 <span class="ot">&lt;-</span> <span class="fu">vect</span>(lshp)</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>crdref <span class="ot">&lt;-</span> <span class="st">"+proj=longlat +datum=WGS84"</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>lonlat.japan <span class="ot">&lt;-</span> <span class="fu">genlonlat</span>(<span class="dv">120</span>, <span class="dv">150</span>, <span class="dv">20</span>, <span class="dv">50</span>)</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>pols.japan <span class="ot">&lt;-</span> <span class="fu">vect</span>(lonlat.japan, <span class="at">type =</span> <span class="st">"polygons"</span>, <span class="at">crs =</span> crdref)</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>newcrs <span class="ot">&lt;-</span> <span class="st">"+proj=stere +lon_0=135e +lat_0=90n"</span></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>l50p <span class="ot">&lt;-</span> <span class="fu">project</span>(l50, newcrs)</span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>pols.japan.p <span class="ot">&lt;-</span> <span class="fu">project</span>(pols.japan, newcrs)</span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">graticule</span>(<span class="dv">30</span>, <span class="dv">30</span>, <span class="at">crs=</span>newcrs)</span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(l50p, <span class="at">axes=</span><span class="cn">FALSE</span>, <span class="at">col=</span><span class="st">"bisque"</span>, <span class="at">background=</span><span class="st">"lightblue"</span>,</span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>     <span class="at">ext=</span><span class="fu">ext</span>(<span class="sc">-</span><span class="fl">1e+7</span>, <span class="fl">1e7</span>, <span class="sc">-</span><span class="fl">1e7</span>, <span class="fl">1e7</span>))</span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(pols.japan.p, <span class="at">border =</span> <span class="st">"black"</span>, <span class="at">lwd =</span> <span class="dv">5</span>, <span class="at">add =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(g, <span class="at">lab.cex =</span> <span class="dv">1</span>, <span class="at">add =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>nedir <span class="ot">&lt;-</span> <span class="fu">path.expand</span>(<span class="st">"~/.local/share/naturalearth/ne_50m"</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>lshp <span class="ot">&lt;-</span> <span class="fu">file.path</span>(nedir, <span class="st">"/ne_50m_land.shp"</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>l50 <span class="ot">&lt;-</span> <span class="fu">vect</span>(lshp)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>crdref <span class="ot">&lt;-</span> <span class="st">"+proj=longlat +datum=WGS84"</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>lonlat.japan <span class="ot">&lt;-</span> <span class="fu">genlonlat</span>(<span class="dv">120</span>, <span class="dv">150</span>, <span class="dv">20</span>, <span class="dv">50</span>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>pols.japan <span class="ot">&lt;-</span> <span class="fu">vect</span>(lonlat.japan, <span class="at">type =</span> <span class="st">"polygons"</span>, <span class="at">crs =</span> crdref)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>newcrs <span class="ot">&lt;-</span> <span class="st">"+proj=stere +lon_0=135e +lat_0=90n"</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>l50p <span class="ot">&lt;-</span> <span class="fu">project</span>(l50, newcrs)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>pols.japan.p <span class="ot">&lt;-</span> <span class="fu">project</span>(pols.japan, newcrs)</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">graticule</span>(<span class="dv">30</span>, <span class="dv">30</span>, <span class="at">crs=</span>newcrs)</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(l50p, <span class="at">axes=</span><span class="cn">FALSE</span>, <span class="at">col=</span><span class="st">"bisque"</span>, <span class="at">background=</span><span class="st">"lightblue"</span>,</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>     <span class="at">ext=</span><span class="fu">ext</span>(<span class="sc">-</span><span class="fl">1e+7</span>, <span class="fl">1e7</span>, <span class="sc">-</span><span class="fl">1e7</span>, <span class="fl">1e7</span>))</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(pols.japan.p, <span class="at">border =</span> <span class="st">"black"</span>, <span class="at">lwd =</span> <span class="dv">5</span>, <span class="at">add =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(g, <span class="at">lab.cex =</span> <span class="dv">1</span>, <span class="at">add =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">

@@ -30,7 +30,7 @@ genlonlat(120, 150, 20, 50, 5)
 `terra`
 
 ```{r}
-#: warning: false
+#| warning: false
 
 library(terra)
 
