@@ -1,0 +1,55 @@
+---
+title: "経度・緯度の箱"
+description: "経度と緯度で指定した領域の地図投影"
+author: "榎本剛"
+date: "2025/4/20"
+categories:
+  - graphics
+  - package
+  - terra
+---
+領域を示すために、経度と緯度を指定した箱を描くことがある。
+地図投影投影すると、長方形でなくなり四隅を指定しただけでは、領域を正しく囲むことができなくなることがある。
+
+ポーラーステレオの場合、四隅を指定すると台形で描かれてしまう。
+そこで、経度を少しずつ変えた点を追加して曲がって見えるようにする。
+
+```{r}
+genlonlat <- function(lon1, lon2, lat1, lat2, dlon = 1) {
+  lon.seq <- seq(lon1, lon2, by = dlon)
+  cbind(id = 1, part = 1,                                                         
+        c(lon.seq, rev(lon.seq), lon1),
+        c(rep(lat1, length(lon.seq)), rep(lat2, length(lon.seq)), lat1))
+}
+genlonlat(120, 150, 20, 50, 5)
+```
+
+低緯度（`lat1`）上で経度が増加するように、高緯度では `rev()` を使って減少させる。
+最後に視点を追加して閉じている。
+ホームディレクトリの`~/.local/share/naturalearth/ne_50m` に Natural Earth のデータを置いておく。
+`terra`
+
+```{r}
+#: warning: false
+
+library(terra)
+
+nedir <- path.expand("~/.local/share/naturalearth/ne_50m")
+lshp <- file.path(nedir, "/ne_50m_land.shp")
+l50 <- vect(lshp)
+
+crdref <- "+proj=longlat +datum=WGS84"
+
+lonlat.japan <- genlonlat(120, 150, 20, 50)
+pols.japan <- vect(lonlat.japan, type = "polygons", crs = crdref)
+
+newcrs <- "+proj=stere +lon_0=135e +lat_0=90n"
+l50p <- project(l50, newcrs)
+pols.japan.p <- project(pols.japan, newcrs)
+g <- graticule(30, 30, crs=newcrs)
+
+plot(l50p, axes=FALSE, col="bisque", background="lightblue",
+     ext=ext(-1e+7, 1e7, -1e7, 1e7))
+plot(pols.japan.p, border = "black", lwd = 5, add = TRUE)
+plot(g, lab.cex = 1, add = TRUE)
+```

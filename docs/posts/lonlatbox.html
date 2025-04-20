@@ -7,10 +7,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="榎本剛">
-<meta name="dcterms.date" content="2025-04-19">
-<meta name="description" content="HCLで見やすい色を選ぶ">
+<meta name="dcterms.date" content="2025-04-20">
+<meta name="description" content="経度と緯度で指定した領域の地図投影">
 
-<title>HCL色空間 – R中心生活</title>
+<title>経度・緯度の箱 – R中心生活</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -57,26 +57,7 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-/* CSS for citations */
-div.csl-bib-body { }
-div.csl-entry {
-  clear: both;
-}
-.hanging-indent div.csl-entry {
-  margin-left:2em;
-  text-indent:-2em;
-}
-div.csl-left-margin {
-  min-width:2em;
-  float:left;
-}
-div.csl-right-inline {
-  margin-left:2em;
-  padding-left:1em;
-}
-div.csl-indent {
-  margin-left: 2em;
-}</style>
+</style>
 
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -175,16 +156,17 @@ div.csl-indent {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">HCL色空間</h1>
+<h1 class="title">経度・緯度の箱</h1>
   <div class="quarto-categories">
     <div class="quarto-category">graphics</div>
     <div class="quarto-category">package</div>
+    <div class="quarto-category">terra</div>
   </div>
   </div>
 
 <div>
   <div class="description">
-    HCLで見やすい色を選ぶ
+    経度と緯度で指定した領域の地図投影
   </div>
 </div>
 
@@ -201,7 +183,7 @@ div.csl-indent {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 19, 2025</p>
+      <p class="date">April 20, 2025</p>
     </div>
   </div>
   
@@ -213,86 +195,73 @@ div.csl-indent {
 </header>
 
 
-<p>人が感じる色は赤と緑、黄色と青の二軸で表すのが自然とされている<span class="citation" data-cites="Ihaka:2003">(<a href="#ref-Ihaka:2003" role="doc-biblioref">Ihaka 2003</a>)</span>。 これを極座標で表したときの角度が色調（hue）、動径が彩度（chroma）である。 さらに輝度（luminance）を加えた円筒座標をHCL色空間という。 Rの既定の色空間はHCLである。</p>
-<p>知覚に関する色の選択として次のような条件が挙げられる<span class="citation" data-cites="Ihaka:2003">(<a href="#ref-Ihaka:2003" role="doc-biblioref">Ihaka 2003</a>)</span>。</p>
-<ul>
-<li>グラフの広い領域に高い彩度を使うことは避ける。注意が長く続き、残像により注意をそらす可能性があるためである。</li>
-<li>グラフで面積が重要なら、近い彩度の色を使う。明るい色は暗い色よりも、面積を大きく見えるためである。</li>
-<li>色をグループに属することを表すなら、色は見分けやすくすべきである。</li>
-</ul>
-<p>これらの条件を満たす簡単な方法は、HCLを使うことである。 その方法は、知覚の上で一様な色空間で、輝度と彩度を同じに、色調を等間隔にするというものである。</p>
-<p><code>hcl.pals()</code>でパレットの名前の一覧を表示できる。</p>
+<p>領域を示すために、経度と緯度を指定した箱を描くことがある。 地図投影投影すると、長方形でなくなり四隅を指定しただけでは、領域を正しく囲むことができなくなることがある。</p>
+<p>ポーラーステレオの場合、四隅を指定すると台形で描かれてしまう。 そこで、経度を少しずつ変えた点を追加して曲がって見えるようにする。</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hcl.pals</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>genlonlat <span class="ot">&lt;-</span> <span class="cf">function</span>(lon1, lon2, lat1, lat2, <span class="at">dlon =</span> <span class="dv">1</span>) {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  lon.seq <span class="ot">&lt;-</span> <span class="fu">seq</span>(lon1, lon2, <span class="at">by =</span> dlon)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cbind</span>(<span class="at">id =</span> <span class="dv">1</span>, <span class="at">part =</span> <span class="dv">1</span>,                                                         </span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(lon.seq, <span class="fu">rev</span>(lon.seq), lon1),</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(<span class="fu">rep</span>(lat1, <span class="fu">length</span>(lon.seq)), <span class="fu">rep</span>(lat2, <span class="fu">length</span>(lon.seq)), lat1))</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">genlonlat</span>(<span class="dv">120</span>, <span class="dv">150</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>  [1] "Pastel 1"      "Dark 2"        "Dark 3"        "Set 2"        
-  [5] "Set 3"         "Warm"          "Cold"          "Harmonic"     
-  [9] "Dynamic"       "Grays"         "Light Grays"   "Blues 2"      
- [13] "Blues 3"       "Purples 2"     "Purples 3"     "Reds 2"       
- [17] "Reds 3"        "Greens 2"      "Greens 3"      "Oslo"         
- [21] "Purple-Blue"   "Red-Purple"    "Red-Blue"      "Purple-Orange"
- [25] "Purple-Yellow" "Blue-Yellow"   "Green-Yellow"  "Red-Yellow"   
- [29] "Heat"          "Heat 2"        "Terrain"       "Terrain 2"    
- [33] "Viridis"       "Plasma"        "Inferno"       "Rocket"       
- [37] "Mako"          "Dark Mint"     "Mint"          "BluGrn"       
- [41] "Teal"          "TealGrn"       "Emrld"         "BluYl"        
- [45] "ag_GrnYl"      "Peach"         "PinkYl"        "Burg"         
- [49] "BurgYl"        "RedOr"         "OrYel"         "Purp"         
- [53] "PurpOr"        "Sunset"        "Magenta"       "SunsetDark"   
- [57] "ag_Sunset"     "BrwnYl"        "YlOrRd"        "YlOrBr"       
- [61] "OrRd"          "Oranges"       "YlGn"          "YlGnBu"       
- [65] "Reds"          "RdPu"          "PuRd"          "Purples"      
- [69] "PuBuGn"        "PuBu"          "Greens"        "BuGn"         
- [73] "GnBu"          "BuPu"          "Blues"         "Lajolla"      
- [77] "Turku"         "Hawaii"        "Batlow"        "Blue-Red"     
- [81] "Blue-Red 2"    "Blue-Red 3"    "Red-Green"     "Purple-Green" 
- [85] "Purple-Brown"  "Green-Brown"   "Blue-Yellow 2" "Blue-Yellow 3"
- [89] "Green-Orange"  "Cyan-Magenta"  "Tropic"        "Broc"         
- [93] "Cork"          "Vik"           "Berlin"        "Lisbon"       
- [97] "Tofino"        "ArmyRose"      "Earth"         "Fall"         
-[101] "Geyser"        "TealRose"      "Temps"         "PuOr"         
-[105] "RdBu"          "RdGy"          "PiYG"          "PRGn"         
-[109] "BrBG"          "RdYlBu"        "RdYlGn"        "Spectral"     
-[113] "Zissou 1"      "Cividis"       "Roma"         </code></pre>
+<pre><code>      id part       
+ [1,]  1    1 120 20
+ [2,]  1    1 125 20
+ [3,]  1    1 130 20
+ [4,]  1    1 135 20
+ [5,]  1    1 140 20
+ [6,]  1    1 145 20
+ [7,]  1    1 150 20
+ [8,]  1    1 150 50
+ [9,]  1    1 145 50
+[10,]  1    1 140 50
+[11,]  1    1 135 50
+[12,]  1    1 130 50
+[13,]  1    1 125 50
+[14,]  1    1 120 50
+[15,]  1    1 120 20</code></pre>
 </div>
 </div>
-<p>既定は<code>viridis</code>である。 <code>hcl.pals()</code>の引数に文字列で名前を渡すと、パレットが変わる。</p>
-<p><code>hcl.colors()</code>に色の数を渡すと、16進数でRGBの文字列ベクトルが返される。</p>
+<p>低緯度（<code>lat1</code>）上で経度が増加するように、高緯度では <code>rev()</code> を使って減少させる。 最後に視点を追加して閉じている。 ホームディレクトリの<code>~/.local/share/naturalearth/ne_50m</code> に Natural Earth のデータを置いておく。 <code>terra</code></p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hcl.colors</span>(<span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] "#4B0055" "#00588B" "#009B95" "#53CC67" "#FDE333"</code></pre>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#: warning: false</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(terra)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>terra 1.8.5</code></pre>
 </div>
-</div>
-<p><a href="https://cran.r-project.org/web/packages/colorspace/index.html">colorspace</a>を使うと、パレットを描画できる。<span class="citation" data-cites="Zeileis-etal:2020">(<a href="#ref-Zeileis-etal:2020" role="doc-biblioref">Zeileis et al. 2020</a>)</span></p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(colorspace)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">hcl_palettes</span>(<span class="at">plot =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>nedir <span class="ot">&lt;-</span> <span class="fu">path.expand</span>(<span class="st">"~/.local/share/naturalearth/ne_50m"</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>lshp <span class="ot">&lt;-</span> <span class="fu">file.path</span>(nedir, <span class="st">"/ne_50m_land.shp"</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>l50 <span class="ot">&lt;-</span> <span class="fu">vect</span>(lshp)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>crdref <span class="ot">&lt;-</span> <span class="st">"+proj=longlat +datum=WGS84"</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>lonlat.japan <span class="ot">&lt;-</span> <span class="fu">genlonlat</span>(<span class="dv">120</span>, <span class="dv">150</span>, <span class="dv">20</span>, <span class="dv">50</span>)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>pols.japan <span class="ot">&lt;-</span> <span class="fu">vect</span>(lonlat.japan, <span class="at">type =</span> <span class="st">"polygons"</span>, <span class="at">crs =</span> crdref)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>newcrs <span class="ot">&lt;-</span> <span class="st">"+proj=stere +lon_0=135e +lat_0=90n"</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>l50p <span class="ot">&lt;-</span> <span class="fu">project</span>(l50, newcrs)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>pols.japan.p <span class="ot">&lt;-</span> <span class="fu">project</span>(pols.japan, newcrs)</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">graticule</span>(<span class="dv">30</span>, <span class="dv">30</span>, <span class="at">crs=</span>newcrs)</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(l50p, <span class="at">axes=</span><span class="cn">FALSE</span>, <span class="at">col=</span><span class="st">"bisque"</span>, <span class="at">background=</span><span class="st">"lightblue"</span>,</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>     <span class="at">ext=</span><span class="fu">ext</span>(<span class="sc">-</span><span class="fl">1e+7</span>, <span class="fl">1e7</span>, <span class="sc">-</span><span class="fl">1e7</span>, <span class="fl">1e7</span>))</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(pols.japan.p, <span class="at">border =</span> <span class="st">"black"</span>, <span class="at">lwd =</span> <span class="dv">5</span>, <span class="at">add =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(g, <span class="at">lab.cex =</span> <span class="dv">1</span>, <span class="at">add =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="hcl_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="lonlatbox_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
-<ul>
-<li><a href="https://colorspace.r-forge.r-project.org/articles/colorspace.html">colorspace: A Toolbox for Manipulating and Assessing Colors and Palettes</a></li>
-<li><a href="https://blog.r-project.org/2019/04/01/hcl-based-color-palettes-in-grdevices/">HCL-Based Color Palettes in grDevices</a></li>
-<li><a href="https://gigazine.net/news/20200629-hcl-color-space/">デザインで「人間が感覚的に見分けやすい色」を選ぶ方法をデータ可視化のプロが解説</a></li>
-</ul>
 
 
 
-
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
-<div id="ref-Ihaka:2003" class="csl-entry" role="listitem">
-Ihaka, R., 2003: Colour for <span>Presentation</span> <span>Graphics</span>. <em>Proc. 3rd <span>International</span> <span>Workshop</span> on <span>Distributed</span> <span>Statistical</span> <span>Computing</span></em>, Vienna, Austria <a href="https://www.r-project.org/conferences/DSC-2003/Proceedings/Ihaka.pdf">https://www.r-project.org/conferences/DSC-2003/Proceedings/Ihaka.pdf</a>.
-</div>
-<div id="ref-Zeileis-etal:2020" class="csl-entry" role="listitem">
-Zeileis, A., J. C. Fisher, K. Hornik, R. Ihaka, C. D. McWhite, P. Murrell, R. Stauffer, and C. O. Wilke, 2020: Colorspace: <span>A</span> toolbox for manipulating and assessing colors and palettes. <em>J. Stat. Software</em>, <strong>96</strong>, <a href="https://doi.org/10.18637/jss.v096.i01">https://doi.org/10.18637/jss.v096.i01</a>.
-</div>
-</div></section></div></main> <!-- /main -->
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {

@@ -14,60 +14,25 @@
     "text": "RでQRコードを作成するには、パッケージqrcodeを使う。\nlibrary(qrcode)\npng(\"qr.png\", 144, 144) # 144 x 144 pixels\nplot(qr_code(\"https://tenomoto.github.io/rchu/\"))\ndev.off()"
   },
   {
-    "objectID": "posts/geta.html",
-    "href": "posts/geta.html",
-    "title": "下駄を履いたグラフ",
+    "objectID": "posts/help.html",
+    "href": "posts/help.html",
+    "title": "ヘルプ",
     "section": "",
-    "text": "曲線が重なっているとき、定数を加えてずらして描くと見やすくなる。 範囲を指定して、軸だけの空のグラフを作る。 y軸を反転させている。\n\nplot(NULL, type=\"n\", xlab=\"x\", ylab=\"y\", xlim=c(0, 2*pi), ylim=c(5, 1))\nx &lt;- seq(0, 2*pi, length.out=101)\nlines(x, sin(x) + 2)\nlines(x, cos(x) + 4)"
+    "text": "RにはUNIXのmanのようなヘルプシステムがある。\nhelp(solve)\n次のようにすることもできる。\n?solve\nウェブブラウザでHTML版を表示するには\nhelp.start()\nとする。\n函数名などが分からない時は、\nhelp.search(solve)\nまたは\n??solve\nでヘルプを検索できる。\n例は次のようにして参照する。\nexample(solve)"
   },
   {
-    "objectID": "posts/enso.html",
-    "href": "posts/enso.html",
-    "title": "ENSO",
+    "objectID": "posts/hcl.html",
+    "href": "posts/hcl.html",
+    "title": "HCL色空間",
     "section": "",
-    "text": "Historic Oceanic Niño Index and Niño 3.4 DataのData file with monthly & seasonal values since 1854をクリックしてNINO34のSSTデータを取得。 year.endは適宜編集する。\n\n# https://bmcnoldy.rsmas.miami.edu/tropics/oni/ONI_NINO34_1854-2022.txt\ndom &lt;- \"NINO34\"\nyear.start &lt;- 1854\nyear.end &lt;- 2024\nfname &lt;- paste0(\"ONI_\", dom, \"_\", year.start, \"-\", year.end, \".txt\")\nenso &lt;- read.table(fname, header = TRUE, skip = 9)\nenso$yearmon &lt;- as.Date(paste0(enso$YEAR, \"-\", enso$MON.MMM, \"-15\"))\nenso[enso==-99.99] = NA\n\n±0.5°Cの期間に陰影をつけ、10年毎にラベルをつけ、2年毎に目盛を打つ。\n\nplot.sst &lt;- function(yearmon, sst.anom){\n  plot(yearmon, sst.anom, xaxt=\"n\",\n    type=\"l\", xlab = \"time\",  ylab=\"°C\",\n    ylim=c(-3, 3))\n  axis(1, at=pretty(yearmon, 10), labels=format(pretty(yearmon, 10), \"%Y\"))\n  axis(1, at=pretty(yearmon, 40), labels = FALSE, tck = -0.02)\n  axis(3, at=pretty(yearmon, 40), labels = FALSE, tck = -0.02)\n  axis(4)\n  polygon(c(yearmon, rev(yearmon)),\n          c(ifelse(sst.anom &lt; 0.5, 0.5, sst.anom),\n            rep(0.5, length(sst.anom))), col=\"pink\", border = FALSE)\n  polygon(c(yearmon, rev(yearmon)),\n          c(ifelse(sst.anom &gt; -0.5, -0.5, sst.anom),\n            rep(-0.5, length(sst.anom))), col=\"lightblue\", border = FALSE)\n  abline(h = -2, col = \"lightblue\", lty=2, lwd=2)\n  abline(h = -1, col = \"lightblue\", lty=2, lwd=1.5)\n  abline(h = -0.5, col = \"lightblue\", lty=2, lwd=1)\n  abline(h =  0.5, col = \"pink\", lty=2, lwd=1)\n  abline(h =  1, col = \"pink\", lty=2, lwd=1.5)\n  abline(h =  2, col = \"pink\", lty=2, lwd=2)\n}\n\n2段に分けてプロットする。\n\npar(mfrow=c(2, 1), mar=c(3, 3, 1, 1))\nperiod &lt;- enso$yearmon &gt;= as.Date(\"1871-01-01\") & enso$yearmon &lt; as.Date(\"1950-01-01\")\nyearmon &lt;- enso$yearmon[period]\nsst.anom &lt;- enso$NINO34_ANOM[period]\nplot.sst(yearmon, sst.anom)\ntitle(paste(dom, \"SST anomaly\"))\nperiod &lt;- enso$yearmon &gt; as.Date(\"1950-01-01\") & !is.na(enso$NINO34_ANOM)\nyearmon &lt;- enso$yearmon[period]\nsst.anom &lt;- enso$NINO34_ANOM[period]\nplot.sst(yearmon, sst.anom)"
+    "text": "人が感じる色は赤と緑、黄色と青の二軸で表すのが自然とされている(Ihaka 2003)。 これを極座標で表したときの角度が色調（hue）、動径が彩度（chroma）である。 さらに輝度（luminance）を加えた円筒座標をHCL色空間という。 Rの既定の色空間はHCLである。\n知覚に関する色の選択として次のような条件が挙げられる(Ihaka 2003)。\n\nグラフの広い領域に高い彩度を使うことは避ける。注意が長く続き、残像により注意をそらす可能性があるためである。\nグラフで面積が重要なら、近い彩度の色を使う。明るい色は暗い色よりも、面積を大きく見えるためである。\n色をグループに属することを表すなら、色は見分けやすくすべきである。\n\nこれらの条件を満たす簡単な方法は、HCLを使うことである。 その方法は、知覚の上で一様な色空間で、輝度と彩度を同じに、色調を等間隔にするというものである。\nhcl.pals()でパレットの名前の一覧を表示できる。\n\nhcl.pals()\n\n  [1] \"Pastel 1\"      \"Dark 2\"        \"Dark 3\"        \"Set 2\"        \n  [5] \"Set 3\"         \"Warm\"          \"Cold\"          \"Harmonic\"     \n  [9] \"Dynamic\"       \"Grays\"         \"Light Grays\"   \"Blues 2\"      \n [13] \"Blues 3\"       \"Purples 2\"     \"Purples 3\"     \"Reds 2\"       \n [17] \"Reds 3\"        \"Greens 2\"      \"Greens 3\"      \"Oslo\"         \n [21] \"Purple-Blue\"   \"Red-Purple\"    \"Red-Blue\"      \"Purple-Orange\"\n [25] \"Purple-Yellow\" \"Blue-Yellow\"   \"Green-Yellow\"  \"Red-Yellow\"   \n [29] \"Heat\"          \"Heat 2\"        \"Terrain\"       \"Terrain 2\"    \n [33] \"Viridis\"       \"Plasma\"        \"Inferno\"       \"Rocket\"       \n [37] \"Mako\"          \"Dark Mint\"     \"Mint\"          \"BluGrn\"       \n [41] \"Teal\"          \"TealGrn\"       \"Emrld\"         \"BluYl\"        \n [45] \"ag_GrnYl\"      \"Peach\"         \"PinkYl\"        \"Burg\"         \n [49] \"BurgYl\"        \"RedOr\"         \"OrYel\"         \"Purp\"         \n [53] \"PurpOr\"        \"Sunset\"        \"Magenta\"       \"SunsetDark\"   \n [57] \"ag_Sunset\"     \"BrwnYl\"        \"YlOrRd\"        \"YlOrBr\"       \n [61] \"OrRd\"          \"Oranges\"       \"YlGn\"          \"YlGnBu\"       \n [65] \"Reds\"          \"RdPu\"          \"PuRd\"          \"Purples\"      \n [69] \"PuBuGn\"        \"PuBu\"          \"Greens\"        \"BuGn\"         \n [73] \"GnBu\"          \"BuPu\"          \"Blues\"         \"Lajolla\"      \n [77] \"Turku\"         \"Hawaii\"        \"Batlow\"        \"Blue-Red\"     \n [81] \"Blue-Red 2\"    \"Blue-Red 3\"    \"Red-Green\"     \"Purple-Green\" \n [85] \"Purple-Brown\"  \"Green-Brown\"   \"Blue-Yellow 2\" \"Blue-Yellow 3\"\n [89] \"Green-Orange\"  \"Cyan-Magenta\"  \"Tropic\"        \"Broc\"         \n [93] \"Cork\"          \"Vik\"           \"Berlin\"        \"Lisbon\"       \n [97] \"Tofino\"        \"ArmyRose\"      \"Earth\"         \"Fall\"         \n[101] \"Geyser\"        \"TealRose\"      \"Temps\"         \"PuOr\"         \n[105] \"RdBu\"          \"RdGy\"          \"PiYG\"          \"PRGn\"         \n[109] \"BrBG\"          \"RdYlBu\"        \"RdYlGn\"        \"Spectral\"     \n[113] \"Zissou 1\"      \"Cividis\"       \"Roma\"         \n\n\n既定はviridisである。 hcl.pals()の引数に文字列で名前を渡すと、パレットが変わる。\nhcl.colors()に色の数を渡すと、16進数でRGBの文字列ベクトルが返される。\n\nhcl.colors(5)\n\n[1] \"#4B0055\" \"#00588B\" \"#009B95\" \"#53CC67\" \"#FDE333\"\n\n\ncolorspaceを使うと、パレットを描画できる。(Zeileis et al. 2020)\n\nlibrary(colorspace)\nhcl_palettes(plot = TRUE)\n\n\n\n\n\n\n\n\n\ncolorspace: A Toolbox for Manipulating and Assessing Colors and Palettes\nHCL-Based Color Palettes in grDevices\nデザインで「人間が感覚的に見分けやすい色」を選ぶ方法をデータ可視化のプロが解説\n\n\n\n\n\nReferences\n\nIhaka, R., 2003: Colour for Presentation Graphics. Proc. 3rd International Workshop on Distributed Statistical Computing, Vienna, Austria https://www.r-project.org/conferences/DSC-2003/Proceedings/Ihaka.pdf.\n\n\nZeileis, A., J. C. Fisher, K. Hornik, R. Ihaka, C. D. McWhite, P. Murrell, R. Stauffer, and C. O. Wilke, 2020: Colorspace: A toolbox for manipulating and assessing colors and palettes. J. Stat. Software, 96, https://doi.org/10.18637/jss.v096.i01."
   },
   {
-    "objectID": "posts/shift.html",
-    "href": "posts/shift.html",
-    "title": "shift",
+    "objectID": "posts/vectorize.html",
+    "href": "posts/vectorize.html",
+    "title": "ベクトル化",
     "section": "",
-    "text": "Rにない函数。headとtailを使う。\n\nshift &lt;- function(x, n) {\n  if (n == 0) {\n    x\n  } else {\n    c(tail(x, n), head(x, -n))\n  }\n}\nshift(1:9,3)\n\n[1] 7 8 9 1 2 3 4 5 6\n\nshift(1:9,-2)\n\n[1] 3 4 5 6 7 8 9 1 2"
-  },
-  {
-    "objectID": "posts/step.html",
-    "href": "posts/step.html",
-    "title": "折れ線ヒストグラム",
-    "section": "",
-    "text": "ヒストグラムの統計結果hの分割点はh$breaks、密度はh$densityに入っている。 分割点の数は密度よりも一つ多い。\nstepfun()を用いると簡単。\\((x_1, x_2, \\dots, x_n)\\)よりも\\((y_0, y_1, \\dots, y_n)\\)が一つ多いことに注意。既定では区間\\([x_{i}, x_{i+1}]\\)の一定値\\(c_i = (1 - f)y_i + fy_{i+1}\\)なので、区間の右の重み\\(f\\)を0にすると\\(x_i\\)に\\(y_i\\)が使われる。\n\nn &lt;- 1000\nm &lt;- 5\ndof &lt;- m - 1\nchisq &lt;- rchisq(n, dof)\nh &lt;- hist(chisq, breaks = 100, plot = FALSE)\nplot(h$breaks, dchisq(h$breaks, dof), type = \"l\", lwd = 2, xlab = \"chisq\", ylab = \"density\", ylim = c(0, max(h$density)))\nlines(stepfun(h$breaks, c(NA, h$density, NA), f = 0), do.points = FALSE)\n\n\n\n\n\n\n\n\nstepfun()を使わない方法。折れ線を描くために、分割点は最初の点と最後の点の間の要素を値を、密度は全体を複製する。\n\nn &lt;- 1000\nm &lt;- 5\ndof &lt;- m - 1\nchisq &lt;- rchisq(n, dof)\nh &lt;- hist(chisq, breaks = 100, plot = FALSE)\nplot(c(h$breaks[1], rep(h$breaks[2:(length(h$breaks)-1)], each = 2),\n       h$breaks[length(h$breaks)]), rep(h$density, each = 2),\n  xlab = \"chisq\", ylab = \"density\", type=\"l\")\nlines(h$breaks, dchisq(h$breaks, dof), lw = 2)"
-  },
-  {
-    "objectID": "posts/vector.html",
-    "href": "posts/vector.html",
-    "title": "ベクトル",
-    "section": "",
-    "text": "Rではデータ構造を操作する。 スカラーが基本型である言語が多いが、Rでは、最も簡単なデータ構造はベクトル。 スカラーは長さ1のベクトル。 c()函数はベクトルをつなげたベクトルを返す。\n\nx &lt;- c(10.4, 5.6, 3.1, 6.4, 21.7)\n\n&lt;-は代入。向きを変えることもできる。\n\nc(10.4, 5.6, 3.1, 6.4, 21.7) -&gt; x\n\n結果を表示するには()で囲む。\n\n(a &lt;- 3)\n\n[1] 3\n\n\n式をコマンドとした場合は値は印字され、破棄される。\n\n1/x\n\n[1] 0.09615385 0.17857143 0.32258065 0.15625000 0.04608295\n\n\nc()はベクトルを引数に取ることもできる。\n\ny &lt;- c(x, 0, x)\n\n二つのxの間に要素を一つ加えた長さ11のベクトルがyに代入される。\n\nベクトルの算術式は要素毎で一番長いものに合わせる。短いベクトルは再利用される。"
-  },
-  {
-    "objectID": "posts/interactive.html",
-    "href": "posts/interactive.html",
-    "title": "起動と終了",
-    "section": "",
-    "text": "UNIXのシェルのようにRを対話的に使うことができる。 入力データや、生成したデータや画像をディレクトリ（フォルダ）にまとめておくと便利。\nターミナルでディレクトリを作成して、そのディレクトリに移動する。\nmkdir work\ncd work\n続いてRを起動する。\nR\nWindows上のPowerShellの場合Rは前のコマンドを実行するInvoke-Historyをエイリアスなので、R.exeとタイプする必要がある。 Rを終了するにはq()を実行する。 終了時に生成したオブジェクトを.RDataに保存するか聞かれる。 作業ディレクトリを分けないと、同じ名前のオブジェクトがせぬふるまいの原因になりうる。 終了時にnを選択し、データを保存しない方がよい。\n\nRで使える文字はlocale依存だが、英数字と . _ である。\n.で始まる名前の2文字目に数字は使えない。\nコマンドは数式または代入。\n数式の場合は評価されて、表示され、破棄される。\n代入は評価されて、変数に値が渡され、自動的には表示されない。\n行の最後で不完全な場合、プロンプトが+になり、入力待ちになる。\nコマンドの履歴は上矢印キーで参照できる。\n\nファイルに保存されているコマンドは\nsource(\"commands.R\")\nで実行できる。\nsink(\"record.lis\")\nは実行後の出力先をファイルに振り向ける。\nsink()\nにより出力がコンソールに戻る。\nRのセッションで生成されたオブジェクトはobjects()またはls()で確認できる。\nrm(x, y, z)\nで削除できる。"
-  },
-  {
-    "objectID": "posts/remove-alias.html",
-    "href": "posts/remove-alias.html",
-    "title": "PowerShellでR",
-    "section": "",
-    "text": "WindowsのPowerShellではRはInvoke-Historyのエイリアスになっているので、Rを起動するにはR.exeとタイプする必要がある。 このエイリアスを削除すれば、RとタイプすればRが起動するようになる。 エイリアスの削除はRemove-Aliasを用いる。 PowerShellの設定ファイル$profileをエディタで開いて次を記述する。\nRemove-Alias -Name R"
-  },
-  {
-    "objectID": "posts/relfreq.html",
-    "href": "posts/relfreq.html",
-    "title": "相対頻度のヒストグラム",
-    "section": "",
-    "text": "hist()は折れ線を描く函数だが、plot = FALSEで統計のみにする。 頻度を総数で割り、相対頻度にしてplot()で描画する。\n\nn &lt;- 1000\nm &lt;- 5\ndof &lt;- m - 1\nchisq &lt;- rchisq(n, dof)\nh &lt;- hist(chisq, breaks = 100, plot = FALSE)\nh$counts &lt;- h$counts / sum(h$counts)\nplot(h, ylab = \"relative frequency\", axes = FALSE)\naxis(1)\naxis(2)"
+    "text": "5つの乱数を2組生成して、分散と共分散を多数計算する。\n\nn &lt;- 10000\nm &lt;- 5\ndof &lt;- m - 1\n\nforループで書いたが、nが大きくなると遅くなる。\n\nset.seed(514)\nstart &lt;- Sys.time()\n\nfor (i in 1:n) {\n  x &lt;- scale(rnorm(m), scale = FALSE)\n  xx &lt;- var(x)\n  y &lt;- scale(rnorm(m), scale = FALSE)\n  yx &lt;- cov(x, y)\n}\nt.loop &lt;- Sys.time() - start\n\napplyを使ってループを回避したが、全く速くならず、むしろ遅くなる。 n=1000000のように大きくなると、cov()の計算が原因でメモリ（ヒープ）が不足する。 種は固定しているが、rnorm()の呼び出しの順番が異なるので同一の結果にはならない。\n\nset.seed(514)\nstart &lt;- Sys.time()\n\nx &lt;- matrix(rnorm(m * n), nrow = m) |&gt;\n  apply(2, scale, scale = FALSE)\ny &lt;- matrix(rnorm(m * n), nrow = m) |&gt;\n  apply(2, scale, scale = FALSE)\nPb &lt;- apply(x, 2, var)\nyx &lt;- diag(cov(x, y)) \n#yx &lt;- numeric(n)\n#for (i in 1:n) {\n#  yx[i] &lt;- cov(Xb[, i], y[, i])\n#} \nt.apply &lt;- Sys.time() - start\n\nscale()にはmatrixを与えることができ、列に対する正規化を行う。 分散は偏差平方平均、共分散は偏差の積の平均なので、要素積をして平均する。 apply(x^2, 2, mean)やapply(x * y, 2, mean)よりもcolMeans()の方が速い。 平均は標本数で割るので、係数を調整する。\n\nset.seed(514)\nstart &lt;- Sys.time()\n\nx &lt;- scale(matrix(rnorm(m * n), nrow = m), scale = FALSE) \ny &lt;- scale(matrix(rnorm(m * n), nrow = m), scale = FALSE)\nv &lt;- colMeans(x^2) * m / dof\nyx &lt;- colMeans(x * y) * m / dof\n\nt.vec &lt;- Sys.time() - start\n\n\n\n\n\n    \n\n    \n    \n      \n        \n        \n              \n                code\n                time\n                speedup\n              \n        \n        \n        \n                \n                  loop \n                  0.5105\n                  1     \n                \n                \n                  apply\n                  0.9898\n                  0.52  \n                \n                \n                  vec  \n                  0.0044\n                  116.96"
   },
   {
     "objectID": "posts/dir2deg.html",
@@ -77,31 +42,73 @@
     "text": "アメダスの16方位を角度に変換する函数。 角度をseqで生成して、それぞれの名前を方角にする。 方角を与えると角度を返す。 ベクトル化されているので、複数の方角を渡すことができる。\n\ndir2deg &lt;- function(x) {\n  dir &lt;- seq(0, 360, length.out=17)[1:16]\n  names(dir) &lt;- c(\"北\", \"北北東\", \"北東\", \"東北東\",\n                  \"東\", \"東南東\", \"南東\", \"南南東\", \n                  \"南\", \"南南西\", \"南西\", \"西南西\", \n                  \"西\", \"西北西\", \"北西\", \"北北西\")\n  dir[x]\n}\ndir &lt;- c(\"北\", \"北北東\", \"北東\", \"東北東\")\ndir2deg(dir)\n\n    北 北北東   北東 東北東 \n   0.0   22.5   45.0   67.5"
   },
   {
-    "objectID": "posts/vectorize.html",
-    "href": "posts/vectorize.html",
-    "title": "ベクトル化",
+    "objectID": "posts/relfreq.html",
+    "href": "posts/relfreq.html",
+    "title": "相対頻度のヒストグラム",
     "section": "",
-    "text": "5つの乱数を2組生成して、分散と共分散を多数計算する。\n\nn &lt;- 10000\nm &lt;- 5\ndof &lt;- m - 1\n\nforループで書いたが、nが大きくなると遅くなる。\n\nset.seed(514)\nstart &lt;- Sys.time()\n\nfor (i in 1:n) {\n  x &lt;- scale(rnorm(m), scale = FALSE)\n  xx &lt;- var(x)\n  y &lt;- scale(rnorm(m), scale = FALSE)\n  yx &lt;- cov(x, y)\n}\nt.loop &lt;- Sys.time() - start\n\napplyを使ってループを回避したが、全く速くならず、むしろ遅くなる。 n=1000000のように大きくなると、cov()の計算が原因でメモリ（ヒープ）が不足する。 種は固定しているが、rnorm()の呼び出しの順番が異なるので同一の結果にはならない。\n\nset.seed(514)\nstart &lt;- Sys.time()\n\nx &lt;- matrix(rnorm(m * n), nrow = m) |&gt;\n  apply(2, scale, scale = FALSE)\ny &lt;- matrix(rnorm(m * n), nrow = m) |&gt;\n  apply(2, scale, scale = FALSE)\nPb &lt;- apply(x, 2, var)\nyx &lt;- diag(cov(x, y)) \n#yx &lt;- numeric(n)\n#for (i in 1:n) {\n#  yx[i] &lt;- cov(Xb[, i], y[, i])\n#} \nt.apply &lt;- Sys.time() - start\n\nscale()にはmatrixを与えることができ、列に対する正規化を行う。 分散は偏差平方平均、共分散は偏差の積の平均なので、要素積をして平均する。 apply(x^2, 2, mean)やapply(x * y, 2, mean)よりもcolMeans()の方が速い。 平均は標本数で割るので、係数を調整する。\n\nset.seed(514)\nstart &lt;- Sys.time()\n\nx &lt;- scale(matrix(rnorm(m * n), nrow = m), scale = FALSE) \ny &lt;- scale(matrix(rnorm(m * n), nrow = m), scale = FALSE)\nv &lt;- colMeans(x^2) * m / dof\nyx &lt;- colMeans(x * y) * m / dof\n\nt.vec &lt;- Sys.time() - start\n\n\n\n\n\n    \n\n    \n    \n      \n        \n        \n              \n                code\n                time\n                speedup\n              \n        \n        \n        \n                \n                  loop \n                  0.503 \n                  1     \n                \n                \n                  apply\n                  0.9798\n                  0.51  \n                \n                \n                  vec  \n                  0.0041\n                  122.72"
+    "text": "hist()は折れ線を描く函数だが、plot = FALSEで統計のみにする。 頻度を総数で割り、相対頻度にしてplot()で描画する。\n\nn &lt;- 1000\nm &lt;- 5\ndof &lt;- m - 1\nchisq &lt;- rchisq(n, dof)\nh &lt;- hist(chisq, breaks = 100, plot = FALSE)\nh$counts &lt;- h$counts / sum(h$counts)\nplot(h, ylab = \"relative frequency\", axes = FALSE)\naxis(1)\naxis(2)"
   },
   {
-    "objectID": "posts/hcl.html",
-    "href": "posts/hcl.html",
-    "title": "hcl",
+    "objectID": "posts/remove-alias.html",
+    "href": "posts/remove-alias.html",
+    "title": "PowerShellでR",
     "section": "",
-    "text": "人が感じる色は赤と緑、黄色と青の二軸で表すのが自然とされている(Ihaka 2003)。 これを極座標で表したときの角度が色調（hue）、動径が彩度（chroma）である。 さらに輝度（luminance）を加えた円筒座標をHCL色空間という。 Rの既定の色空間はHCLである。\n知覚に関する色の選択として次のような条件が挙げられる(Ihaka 2003)。\n\nグラフの広い領域に高い彩度を使うことは避ける。注意が長く続き、残像により注意をそらす可能性があるためである。\nグラフで面積が重要なら、近い彩度の色を使う。明るい色は暗い色よりも、面積を大きく見えるためである。\n色をグループに属することを表すなら、色は見分けやすくすべきである。\n\nこれらの条件を満たす簡単な方法は、HCLを使うことである。 その方法は、知覚の上で一様な色空間で、輝度と彩度を同じに、色調を等間隔にするというものである。\nhcl.pals()でパレットの名前の一覧を表示できる。\n\nhcl.pals()\n\n  [1] \"Pastel 1\"      \"Dark 2\"        \"Dark 3\"        \"Set 2\"        \n  [5] \"Set 3\"         \"Warm\"          \"Cold\"          \"Harmonic\"     \n  [9] \"Dynamic\"       \"Grays\"         \"Light Grays\"   \"Blues 2\"      \n [13] \"Blues 3\"       \"Purples 2\"     \"Purples 3\"     \"Reds 2\"       \n [17] \"Reds 3\"        \"Greens 2\"      \"Greens 3\"      \"Oslo\"         \n [21] \"Purple-Blue\"   \"Red-Purple\"    \"Red-Blue\"      \"Purple-Orange\"\n [25] \"Purple-Yellow\" \"Blue-Yellow\"   \"Green-Yellow\"  \"Red-Yellow\"   \n [29] \"Heat\"          \"Heat 2\"        \"Terrain\"       \"Terrain 2\"    \n [33] \"Viridis\"       \"Plasma\"        \"Inferno\"       \"Rocket\"       \n [37] \"Mako\"          \"Dark Mint\"     \"Mint\"          \"BluGrn\"       \n [41] \"Teal\"          \"TealGrn\"       \"Emrld\"         \"BluYl\"        \n [45] \"ag_GrnYl\"      \"Peach\"         \"PinkYl\"        \"Burg\"         \n [49] \"BurgYl\"        \"RedOr\"         \"OrYel\"         \"Purp\"         \n [53] \"PurpOr\"        \"Sunset\"        \"Magenta\"       \"SunsetDark\"   \n [57] \"ag_Sunset\"     \"BrwnYl\"        \"YlOrRd\"        \"YlOrBr\"       \n [61] \"OrRd\"          \"Oranges\"       \"YlGn\"          \"YlGnBu\"       \n [65] \"Reds\"          \"RdPu\"          \"PuRd\"          \"Purples\"      \n [69] \"PuBuGn\"        \"PuBu\"          \"Greens\"        \"BuGn\"         \n [73] \"GnBu\"          \"BuPu\"          \"Blues\"         \"Lajolla\"      \n [77] \"Turku\"         \"Hawaii\"        \"Batlow\"        \"Blue-Red\"     \n [81] \"Blue-Red 2\"    \"Blue-Red 3\"    \"Red-Green\"     \"Purple-Green\" \n [85] \"Purple-Brown\"  \"Green-Brown\"   \"Blue-Yellow 2\" \"Blue-Yellow 3\"\n [89] \"Green-Orange\"  \"Cyan-Magenta\"  \"Tropic\"        \"Broc\"         \n [93] \"Cork\"          \"Vik\"           \"Berlin\"        \"Lisbon\"       \n [97] \"Tofino\"        \"ArmyRose\"      \"Earth\"         \"Fall\"         \n[101] \"Geyser\"        \"TealRose\"      \"Temps\"         \"PuOr\"         \n[105] \"RdBu\"          \"RdGy\"          \"PiYG\"          \"PRGn\"         \n[109] \"BrBG\"          \"RdYlBu\"        \"RdYlGn\"        \"Spectral\"     \n[113] \"Zissou 1\"      \"Cividis\"       \"Roma\"         \n\n\n既定はviridisである。 hcl.pals()の引数に文字列で名前を渡すと、パレットが変わる。\nhcl.colors()に色の数を渡すと、16進数でRGBの文字列ベクトルが返される。\n\nhcl.colors(5)\n\n[1] \"#4B0055\" \"#00588B\" \"#009B95\" \"#53CC67\" \"#FDE333\"\n\n\ncolorspaceを使うと、パレットを描画できる。(Zeileis et al. 2020)\n\nlibrary(colorspace)\nhcl_palettes(plot = TRUE)\n\n\n\n\n\n\n\n\n\ncolorspace: A Toolbox for Manipulating and Assessing Colors and Palettes\nHCL-Based Color Palettes in grDevices\nデザインで「人間が感覚的に見分けやすい色」を選ぶ方法をデータ可視化のプロが解説\n\n\n\n\n\nReferences\n\nIhaka, R., 2003: Colour for Presentation Graphics. Proc. 3rd International Workshop on Distributed Statistical Computing, Vienna, Austria https://www.r-project.org/conferences/DSC-2003/Proceedings/Ihaka.pdf.\n\n\nZeileis, A., J. C. Fisher, K. Hornik, R. Ihaka, C. D. McWhite, P. Murrell, R. Stauffer, and C. O. Wilke, 2020: Colorspace: A toolbox for manipulating and assessing colors and palettes. J. Stat. Software, 96, https://doi.org/10.18637/jss.v096.i01."
+    "text": "WindowsのPowerShellではRはInvoke-Historyのエイリアスになっているので、Rを起動するにはR.exeとタイプする必要がある。 このエイリアスを削除すれば、RとタイプすればRが起動するようになる。 エイリアスの削除はRemove-Aliasを用いる。 PowerShellの設定ファイル$profileをエディタで開いて次を記述する。\nRemove-Alias -Name R"
   },
   {
-    "objectID": "posts/help.html",
-    "href": "posts/help.html",
-    "title": "ヘルプ",
+    "objectID": "posts/interactive.html",
+    "href": "posts/interactive.html",
+    "title": "起動と終了",
     "section": "",
-    "text": "RにはUNIXのmanのようなヘルプシステムがある。\nhelp(solve)\n次のようにすることもできる。\n?solve\nウェブブラウザでHTML版を表示するには\nhelp.start()\nとする。\n函数名などが分からない時は、\nhelp.search(solve)\nまたは\n??solve\nでヘルプを検索できる。\n例は次のようにして参照する。\nexample(solve)"
+    "text": "UNIXのシェルのようにRを対話的に使うことができる。 入力データや、生成したデータや画像をディレクトリ（フォルダ）にまとめておくと便利。\nターミナルでディレクトリを作成して、そのディレクトリに移動する。\nmkdir work\ncd work\n続いてRを起動する。\nR\nWindows上のPowerShellの場合Rは前のコマンドを実行するInvoke-Historyをエイリアスなので、R.exeとタイプする必要がある。 Rを終了するにはq()を実行する。 終了時に生成したオブジェクトを.RDataに保存するか聞かれる。 作業ディレクトリを分けないと、同じ名前のオブジェクトがせぬふるまいの原因になりうる。 終了時にnを選択し、データを保存しない方がよい。\n\nRで使える文字はlocale依存だが、英数字と . _ である。\n.で始まる名前の2文字目に数字は使えない。\nコマンドは数式または代入。\n数式の場合は評価されて、表示され、破棄される。\n代入は評価されて、変数に値が渡され、自動的には表示されない。\n行の最後で不完全な場合、プロンプトが+になり、入力待ちになる。\nコマンドの履歴は上矢印キーで参照できる。\n\nファイルに保存されているコマンドは\nsource(\"commands.R\")\nで実行できる。\nsink(\"record.lis\")\nは実行後の出力先をファイルに振り向ける。\nsink()\nにより出力がコンソールに戻る。\nRのセッションで生成されたオブジェクトはobjects()またはls()で確認できる。\nrm(x, y, z)\nで削除できる。"
+  },
+  {
+    "objectID": "posts/vector.html",
+    "href": "posts/vector.html",
+    "title": "ベクトル",
+    "section": "",
+    "text": "Rではデータ構造を操作する。 スカラーが基本型である言語が多いが、Rでは、最も簡単なデータ構造はベクトル。 スカラーは長さ1のベクトル。 c()函数はベクトルをつなげたベクトルを返す。\n\nx &lt;- c(10.4, 5.6, 3.1, 6.4, 21.7)\n\n&lt;-は代入。向きを変えることもできる。\n\nc(10.4, 5.6, 3.1, 6.4, 21.7) -&gt; x\n\n結果を表示するには()で囲む。\n\n(a &lt;- 3)\n\n[1] 3\n\n\n式をコマンドとした場合は値は印字され、破棄される。\n\n1/x\n\n[1] 0.09615385 0.17857143 0.32258065 0.15625000 0.04608295\n\n\nc()はベクトルを引数に取ることもできる。\n\ny &lt;- c(x, 0, x)\n\n二つのxの間に要素を一つ加えた長さ11のベクトルがyに代入される。\n\nベクトルの算術式は要素毎で一番長いものに合わせる。短いベクトルは再利用される。"
+  },
+  {
+    "objectID": "posts/step.html",
+    "href": "posts/step.html",
+    "title": "折れ線ヒストグラム",
+    "section": "",
+    "text": "ヒストグラムの統計結果hの分割点はh$breaks、密度はh$densityに入っている。 分割点の数は密度よりも一つ多い。\nstepfun()を用いると簡単。\\((x_1, x_2, \\dots, x_n)\\)よりも\\((y_0, y_1, \\dots, y_n)\\)が一つ多いことに注意。既定では区間\\([x_{i}, x_{i+1}]\\)の一定値\\(c_i = (1 - f)y_i + fy_{i+1}\\)なので、区間の右の重み\\(f\\)を0にすると\\(x_i\\)に\\(y_i\\)が使われる。\n\nn &lt;- 1000\nm &lt;- 5\ndof &lt;- m - 1\nchisq &lt;- rchisq(n, dof)\nh &lt;- hist(chisq, breaks = 100, plot = FALSE)\nplot(h$breaks, dchisq(h$breaks, dof), type = \"l\", lwd = 2, xlab = \"chisq\", ylab = \"density\", ylim = c(0, max(h$density)))\nlines(stepfun(h$breaks, c(NA, h$density, NA), f = 0), do.points = FALSE)\n\n\n\n\n\n\n\n\nstepfun()を使わない方法。折れ線を描くために、分割点は最初の点と最後の点の間の要素を値を、密度は全体を複製する。\n\nn &lt;- 1000\nm &lt;- 5\ndof &lt;- m - 1\nchisq &lt;- rchisq(n, dof)\nh &lt;- hist(chisq, breaks = 100, plot = FALSE)\nplot(c(h$breaks[1], rep(h$breaks[2:(length(h$breaks)-1)], each = 2),\n       h$breaks[length(h$breaks)]), rep(h$density, each = 2),\n  xlab = \"chisq\", ylab = \"density\", type=\"l\")\nlines(h$breaks, dchisq(h$breaks, dof), lw = 2)"
+  },
+  {
+    "objectID": "posts/shift.html",
+    "href": "posts/shift.html",
+    "title": "shift",
+    "section": "",
+    "text": "Rにない函数。headとtailを使う。\n\nshift &lt;- function(x, n) {\n  if (n == 0) {\n    x\n  } else {\n    c(tail(x, n), head(x, -n))\n  }\n}\nshift(1:9,3)\n\n[1] 7 8 9 1 2 3 4 5 6\n\nshift(1:9,-2)\n\n[1] 3 4 5 6 7 8 9 1 2"
+  },
+  {
+    "objectID": "posts/enso.html",
+    "href": "posts/enso.html",
+    "title": "ENSO",
+    "section": "",
+    "text": "Historic Oceanic Niño Index and Niño 3.4 DataのData file with monthly & seasonal values since 1854をクリックしてNINO34のSSTデータを取得。 year.endは適宜編集する。\n\n# https://bmcnoldy.rsmas.miami.edu/tropics/oni/ONI_NINO34_1854-2022.txt\ndom &lt;- \"NINO34\"\nyear.start &lt;- 1854\nyear.end &lt;- 2024\nfname &lt;- paste0(\"ONI_\", dom, \"_\", year.start, \"-\", year.end, \".txt\")\nenso &lt;- read.table(fname, header = TRUE, skip = 9)\nenso$yearmon &lt;- as.Date(paste0(enso$YEAR, \"-\", enso$MON.MMM, \"-15\"))\nenso[enso==-99.99] = NA\n\n±0.5°Cの期間に陰影をつけ、10年毎にラベルをつけ、2年毎に目盛を打つ。\n\nplot.sst &lt;- function(yearmon, sst.anom){\n  plot(yearmon, sst.anom, xaxt=\"n\",\n    type=\"l\", xlab = \"time\",  ylab=\"°C\",\n    ylim=c(-3, 3))\n  axis(1, at=pretty(yearmon, 10), labels=format(pretty(yearmon, 10), \"%Y\"))\n  axis(1, at=pretty(yearmon, 40), labels = FALSE, tck = -0.02)\n  axis(3, at=pretty(yearmon, 40), labels = FALSE, tck = -0.02)\n  axis(4)\n  polygon(c(yearmon, rev(yearmon)),\n          c(ifelse(sst.anom &lt; 0.5, 0.5, sst.anom),\n            rep(0.5, length(sst.anom))), col=\"pink\", border = FALSE)\n  polygon(c(yearmon, rev(yearmon)),\n          c(ifelse(sst.anom &gt; -0.5, -0.5, sst.anom),\n            rep(-0.5, length(sst.anom))), col=\"lightblue\", border = FALSE)\n  abline(h = -2, col = \"lightblue\", lty=2, lwd=2)\n  abline(h = -1, col = \"lightblue\", lty=2, lwd=1.5)\n  abline(h = -0.5, col = \"lightblue\", lty=2, lwd=1)\n  abline(h =  0.5, col = \"pink\", lty=2, lwd=1)\n  abline(h =  1, col = \"pink\", lty=2, lwd=1.5)\n  abline(h =  2, col = \"pink\", lty=2, lwd=2)\n}\n\n2段に分けてプロットする。\n\npar(mfrow=c(2, 1), mar=c(3, 3, 1, 1))\nperiod &lt;- enso$yearmon &gt;= as.Date(\"1871-01-01\") & enso$yearmon &lt; as.Date(\"1950-01-01\")\nyearmon &lt;- enso$yearmon[period]\nsst.anom &lt;- enso$NINO34_ANOM[period]\nplot.sst(yearmon, sst.anom)\ntitle(paste(dom, \"SST anomaly\"))\nperiod &lt;- enso$yearmon &gt; as.Date(\"1950-01-01\") & !is.na(enso$NINO34_ANOM)\nyearmon &lt;- enso$yearmon[period]\nsst.anom &lt;- enso$NINO34_ANOM[period]\nplot.sst(yearmon, sst.anom)"
+  },
+  {
+    "objectID": "posts/geta.html",
+    "href": "posts/geta.html",
+    "title": "下駄を履いたグラフ",
+    "section": "",
+    "text": "曲線が重なっているとき、定数を加えてずらして描くと見やすくなる。 範囲を指定して、軸だけの空のグラフを作る。 y軸を反転させている。\n\nplot(NULL, type=\"n\", xlab=\"x\", ylab=\"y\", xlim=c(0, 2*pi), ylim=c(5, 1))\nx &lt;- seq(0, 2*pi, length.out=101)\nlines(x, sin(x) + 2)\nlines(x, cos(x) + 4)"
+  },
+  {
+    "objectID": "posts/lonlatbox.html",
+    "href": "posts/lonlatbox.html",
+    "title": "経度・緯度の箱",
+    "section": "",
+    "text": "領域を示すために、経度と緯度を指定した箱を描くことがある。 地図投影投影すると、長方形でなくなり四隅を指定しただけでは、領域を正しく囲むことができなくなることがある。\nポーラーステレオの場合、四隅を指定すると台形で描かれてしまう。 そこで、経度を少しずつ変えた点を追加して曲がって見えるようにする。\n\ngenlonlat &lt;- function(lon1, lon2, lat1, lat2, dlon = 1) {\n  lon.seq &lt;- seq(lon1, lon2, by = dlon)\n  cbind(id = 1, part = 1,                                                         \n        c(lon.seq, rev(lon.seq), lon1),\n        c(rep(lat1, length(lon.seq)), rep(lat2, length(lon.seq)), lat1))\n}\ngenlonlat(120, 150, 20, 50, 5)\n\n      id part       \n [1,]  1    1 120 20\n [2,]  1    1 125 20\n [3,]  1    1 130 20\n [4,]  1    1 135 20\n [5,]  1    1 140 20\n [6,]  1    1 145 20\n [7,]  1    1 150 20\n [8,]  1    1 150 50\n [9,]  1    1 145 50\n[10,]  1    1 140 50\n[11,]  1    1 135 50\n[12,]  1    1 130 50\n[13,]  1    1 125 50\n[14,]  1    1 120 50\n[15,]  1    1 120 20\n\n\n低緯度（lat1）上で経度が増加するように、高緯度では rev() を使って減少させる。 最後に視点を追加して閉じている。 ホームディレクトリの~/.local/share/naturalearth/ne_50m に Natural Earth のデータを置いておく。 terra\n\n#: warning: false\n\nlibrary(terra)\n\nterra 1.8.5\n\nnedir &lt;- path.expand(\"~/.local/share/naturalearth/ne_50m\")\nlshp &lt;- file.path(nedir, \"/ne_50m_land.shp\")\nl50 &lt;- vect(lshp)\n\ncrdref &lt;- \"+proj=longlat +datum=WGS84\"\n\nlonlat.japan &lt;- genlonlat(120, 150, 20, 50)\npols.japan &lt;- vect(lonlat.japan, type = \"polygons\", crs = crdref)\n\nnewcrs &lt;- \"+proj=stere +lon_0=135e +lat_0=90n\"\nl50p &lt;- project(l50, newcrs)\npols.japan.p &lt;- project(pols.japan, newcrs)\ng &lt;- graticule(30, 30, crs=newcrs)\n\nplot(l50p, axes=FALSE, col=\"bisque\", background=\"lightblue\",\n     ext=ext(-1e+7, 1e7, -1e7, 1e7))\nplot(pols.japan.p, border = \"black\", lwd = 5, add = TRUE)\nplot(g, lab.cex = 1, add = TRUE)"
   },
   {
     "objectID": "index.html",
     "href": "index.html",
     "title": "R中心生活（R中）",
     "section": "",
-    "text": "PowerShellでR\n\n\n\nwindows\n\n\n\nPowerShellのエイリアスを削除する\n\n\n\n榎本剛\n\n\n\n\n\n\n\n\n\n\n\n\nベクトル\n\n\n\nbasics\n\n\n\nベクトルの操作\n\n\n\n榎本剛\n\n\n\n\n\n\n\n\n\n\n\n\nベクトル化\n\n\n\nperformance\n\n\ntable\n\n\n\nループ回避して高速化する\n\n\n\n榎本剛\n\n\n\n\n\n\n\n\n\n\n\n\nhcl\n\n\n\ngraphics\n\n\npackage\n\n\n\nHCLで色選び\n\n\n\n榎本剛\n\n\n\n\n\n\n\n\n\n\n\n\nヘルプ\n\n\n\nbasics\n\n\n\n函数や機能のヘルプを参照する\n\n\n\n榎本剛\n\n\n\n\n\n\n\n\n\n\n\n\nQR\n\n\n\ngraphics\n\n\npackage\n\n\n\nQRコード\n\n\n\n榎本剛\n\n\n\n\n\n\n\n\n\n\n\n\n相対頻度のヒストグラム\n\n\n\nstat\n\n\ngraphics\n\n\n\n頻度でも密度でもなく\n\n\n\n榎本剛\n\n\nJan 3, 2025\n\n\n\n\n\n\n\n\n\n\n\n\n折れ線ヒストグラム\n\n\n\nstat\n\n\ngraphics\n\n\n\n棒グラフの代わりに折れ線で\n\n\n\n榎本剛\n\n\nJan 3, 2025\n\n\n\n\n\n\n\n\n\n\n\n\n起動と終了\n\n\n\nbasics\n\n\n\nRを対話的に使う\n\n\n\n榎本剛\n\n\nNov 2, 2024\n\n\n\n\n\n\n\n\n\n\n\n\n下駄を履いたグラフ\n\n\n\ngraphics\n\n\n\n曲線に定数を加えて見やすく\n\n\n\n榎本剛\n\n\nNov 1, 2024\n\n\n\n\n\n\n\n\n\n\n\n\n16方位を角度に\n\n\n\nfunctions\n\n\n\n方角を角度に変換\n\n\n\n榎本剛\n\n\nOct 31, 2024\n\n\n\n\n\n\n\n\n\n\n\n\nshift\n\n\n\nfunctions\n\n\n\n要素をずらす\n\n\n\n榎本剛\n\n\nOct 31, 2024\n\n\n\n\n\n\n\n\n\n\n\n\nENSO\n\n\n\ngraphics\n\n\nclimate\n\n\n\nエルニーニョ・南方振動\n\n\n\n榎本剛\n\n\nOct 31, 2024\n\n\n\n\n\n\n\n\nNo matching items"
+    "text": "PowerShellでR\n\n\n\nwindows\n\n\n\nPowerShellのエイリアスを削除する\n\n\n\n榎本剛\n\n\n\n\n\n\n\n\n\n\n\n\nベクトル\n\n\n\nbasics\n\n\n\nベクトルの操作\n\n\n\n榎本剛\n\n\n\n\n\n\n\n\n\n\n\n\nベクトル化\n\n\n\nperformance\n\n\ntable\n\n\n\nループ回避して高速化する\n\n\n\n榎本剛\n\n\n\n\n\n\n\n\n\n\n\n\nヘルプ\n\n\n\nbasics\n\n\n\n函数や機能のヘルプを参照する\n\n\n\n榎本剛\n\n\n\n\n\n\n\n\n\n\n\n\nQR\n\n\n\ngraphics\n\n\npackage\n\n\n\nQRコード\n\n\n\n榎本剛\n\n\n\n\n\n\n\n\n\n\n\n\n経度・緯度の箱\n\n\n\ngraphics\n\n\npackage\n\n\nterra\n\n\n\n経度と緯度で指定した領域の地図投影\n\n\n\n榎本剛\n\n\nApr 20, 2025\n\n\n\n\n\n\n\n\n\n\n\n\nHCL色空間\n\n\n\ngraphics\n\n\npackage\n\n\n\nHCLで見やすい色を選ぶ\n\n\n\n榎本剛\n\n\nApr 19, 2025\n\n\n\n\n\n\n\n\n\n\n\n\n相対頻度のヒストグラム\n\n\n\nstat\n\n\ngraphics\n\n\n\n頻度でも密度でもなく\n\n\n\n榎本剛\n\n\nJan 3, 2025\n\n\n\n\n\n\n\n\n\n\n\n\n折れ線ヒストグラム\n\n\n\nstat\n\n\ngraphics\n\n\n\n棒グラフの代わりに折れ線で\n\n\n\n榎本剛\n\n\nJan 3, 2025\n\n\n\n\n\n\n\n\n\n\n\n\n起動と終了\n\n\n\nbasics\n\n\n\nRを対話的に使う\n\n\n\n榎本剛\n\n\nNov 2, 2024\n\n\n\n\n\n\n\n\n\n\n\n\n下駄を履いたグラフ\n\n\n\ngraphics\n\n\n\n曲線に定数を加えて見やすく\n\n\n\n榎本剛\n\n\nNov 1, 2024\n\n\n\n\n\n\n\n\n\n\n\n\n16方位を角度に\n\n\n\nfunctions\n\n\n\n方角を角度に変換\n\n\n\n榎本剛\n\n\nOct 31, 2024\n\n\n\n\n\n\n\n\n\n\n\n\nshift\n\n\n\nfunctions\n\n\n\n要素をずらす\n\n\n\n榎本剛\n\n\nOct 31, 2024\n\n\n\n\n\n\n\n\n\n\n\n\nENSO\n\n\n\ngraphics\n\n\nclimate\n\n\n\nエルニーニョ・南方振動\n\n\n\n榎本剛\n\n\nOct 31, 2024\n\n\n\n\n\n\n\n\nNo matching items"
   }
 ]

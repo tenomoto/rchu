@@ -1,7 +1,8 @@
 ---
-title: hcl
-description: HCLで色選び
-author: 榎本剛
+title: "HCL色空間"
+description: "HCLで見やすい色を選ぶ"
+author: "榎本剛"
+date: "2025/4/19"
 categories:
   - graphics
   - package
