@@ -204,11 +204,11 @@ adjoint <- function(dt, a, x, y) {
     ax[n] <- ax[n] + dt * a[2] * x[n] * ax[n+1]
     ax[n] <- ax[n] + (1 + dt * (a[1] + a[2] * x[n] + a[3] * y[n])) * ax[n+1]
   }
-  c(a, ax[1], ay[2])
+  c(aa, ax[1], ay[1])
 }
 ```
-<!---
 
+<!---
 ```{r}
 calc.cost <- function(xf, yf, xo, yo) {
   0.5 * (sum((xf- xo)^2 + (yf - yo)^2)) 

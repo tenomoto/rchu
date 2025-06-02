@@ -398,11 +398,10 @@ L = \dots -\lambda_Y(Y - G(X, \dots)) - \lambda_Z(Z - F(X, Y, \dots)) + \dots
 <span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    ax[n] <span class="ot">&lt;-</span> ax[n] <span class="sc">+</span> dt <span class="sc">*</span> a[<span class="dv">2</span>] <span class="sc">*</span> x[n] <span class="sc">*</span> ax[n<span class="sc">+</span><span class="dv">1</span>]</span>
 <span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>    ax[n] <span class="ot">&lt;-</span> ax[n] <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> dt <span class="sc">*</span> (a[<span class="dv">1</span>] <span class="sc">+</span> a[<span class="dv">2</span>] <span class="sc">*</span> x[n] <span class="sc">+</span> a[<span class="dv">3</span>] <span class="sc">*</span> y[n])) <span class="sc">*</span> ax[n<span class="sc">+</span><span class="dv">1</span>]</span>
 <span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(a, ax[<span class="dv">1</span>], ay[<span class="dv">2</span>])</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(aa, ax[<span class="dv">1</span>], ay[<span class="dv">1</span>])</span>
 <span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <!---
-
 
 
 ::: {.cell}
@@ -514,7 +513,7 @@ print(ahist[, itermax])
 ::: {.cell-output .cell-output-stdout}
 
 ```
-[1]  0.9043821  0.0000000  0.0000000 -0.9043821  0.0000000  0.0000000
+[1]  1  0  0 -1  0  0
 ```
 
 
@@ -553,8 +552,8 @@ print(cost)
 ::: {.cell-output .cell-output-stdout}
 
 ```
- [1] 524.5324 521.4772 518.4894 515.5675 512.7098 509.9149 507.1813 504.5075
- [9] 501.8921 499.3338
+ [1] 524.5324 524.5324 524.5324 524.5324 524.5324 524.5324 524.5324 524.5324
+ [9] 524.5324 524.5324
 ```
 
 
