@@ -188,9 +188,11 @@ forward <- function(dt, a, x1, y1, nmax) {
 adjoint <- function(dt, a, x, y) {
   nmax <- length(x)
   aa <- rep(0, length(a))
-  ax <- rep(0, nmax)
-  ay <- rep(0, nmax)
-  for (n in (nmax-1):1) {
+  ax <- rep(0, nmax+1)
+  ay <- rep(0, nmax+1)
+  ax[nmax+1] <- 1
+  ay[nmax+1] <- 1
+  for (n in (nmax):1) {
     aa[6] <- aa[6] + dt * x[n] * y[n] * ay[n+1]
     aa[5] <- aa[5] + dt * y[n] * y[n] * ay[n+1]
     aa[4] <- aa[4] + dt * y[n] * ay[n+1]
@@ -203,54 +205,9 @@ adjoint <- function(dt, a, x, y) {
     ay[n] <- ay[n] + dt * a[3] * x[n] * ax[n+1]
     ax[n] <- ax[n] + dt * a[2] * x[n] * ax[n+1]
     ax[n] <- ax[n] + (1 + dt * (a[1] + a[2] * x[n] + a[3] * y[n])) * ax[n+1]
+    cat(n, ":", aa, ax[n], ay[n], "\n")
   }
   c(aa, ax[1], ay[1])
-}
-```
-
-<!---
-```{r}
-calc.cost <- function(xf, yf, xo, yo) {
-  0.5 * (sum((xf- xo)^2 + (yf - yo)^2)) 
-}
-
-fn <- function(par, ...){
-  xf <- par[7]
-  yf <- par[8]
-  calc.cost(xf, yf, xo, yo)
-}
-
-gr <- function(par, ...) {
-  
-}
-
-assimilate <- function(dt, lr, itermax, a, x1, y1, nmax, xo, yo, step.obs) {
-  ahist <- matrix(0, nrow = length(a), ncol = itermax)
-  xhist <- rep(0, itermax)
-  yhist <- rep(0, itermax)
-  cost <- rep(0, itermax)
-  for (j in 1:itermax) {
-    forward.result <- forward(dt, a, x1, y1, nmax)
-    xf <- forward.result$x[step.obs]
-    yf <- forward.result$y[step.obs]
-    adjoint.result <- adjoint(dt, a, xf, yf)
-#    bfgs.result <- bfgs(
-#      
-#    )
-    aa <- adjoint.result[1:6]
-    ax <- adjoint.result[7]
-    ay <- adjoint.result[8]
-    for (i in 1:length(a)) {
-      a[i] <- a[i] - lr * aa[i]
-    }
-    ahist[, j] <- a
-    x1 <- x1 - lr * ax
-    y1 <- y1 - lr * ay
-    xhist[j] <- x1
-    yhist[j] <- y1
-    cost[j] <- calc.cost(xf, yf, xo, yo)  
-  }
-  list(aa = ahist, xa = xhist, ya = yhist, cost = cost)
 }
 ```
 
@@ -264,6 +221,7 @@ dt <- 0.001
 a <- c(4, -2, -4, -6, 2, 4)
 x1 <- 1
 y1 <- 1
+tobs <- seq(2, nmax, by = 2)
 forward.result <- forward(dt, a, x1, y1, nmax)
 xt <- forward.result$x
 yt <- forward.result$y
@@ -272,26 +230,59 @@ yt <- forward.result$y
 真値から観測を作成する。
 
 ```{r}
-xo <- xt[seq(2, nmax, by = 2)]
-yo <- yt[seq(2, nmax, by = 2)]
+xo <- xt[tobs]
+yo <- yt[tobs]
 ```
+
+```{r}
+calc.cost <- function(xf, yf, xo, yo) {
+  0.5 * (sum((xf- xo)^2 + (yf - yo)^2)) 
+}
+```
+
 
 次に、観測値を同化して順行モデルのパラメタと初期値を推定する。
 ```{r}
-lr <- 0.01
+lr <- 0.03
 a <- c(1, 0, 0, -1, 0, 0)
 x1 <- 2
 y1 <- 2
-itermax <- 10
-step.obs <- seq(2, nmax, by = 2)
-assimilate.result <- assimilate(dt, lr, itermax, a, x1, y1, nmax, xo, yo, step.obs)
-ahist <- assimilate.result$aa
-xhist <- assimilate.result$xa
-yhist <- assimilate.result$ya
-cost <- assimilate.result$cost
-print(ahist[, itermax])
-print(xhist)
-print(yhist)
-print(cost)
+itermax <- 80
+tobs <- seq(2, nmax, by = 2)
+
+chist <- rep(0, itermax)
+ghist <- rep(0, itermax)
+xhist <- matrix(rep(0, 8 * itermax), nrow = 8)
+for (iter in 1: itermax) {
+  forward.result <- forward(dt, a, x1, y1, nmax)
+  xf <- forward.result$x[tobs]
+  yf <- forward.result$y[tobs]
+  aa <- adjoint(dt, a, xf, yf)
+  ghist[iter] <- sqrt(sum(aa^2))
+  if (ghist[iter] < 1e-6) {
+    cat("Converged at iteration", iter, "with cost", chist[iter], "\n")
+    break
+  }
+  chist[iter] <- calc.cost(xf, yf, xo, yo)
+  if (chist[iter] >= chist[iter-1] && iter > 1) {
+    cat("Cost did not decrease at iteration", iter, "with cost", chist[iter], "\n")
+    break
+  }
+  xhist[, iter] <- c(a, x1, y1)
+#  cat("iter:", iter, "cost", chist[iter],  "a:", a, "x1:", x1, "y1:", y1, "\n")
+  cat("iter:", iter, "cost", chist[iter], "|g|", ghist[iter], "x1:", x1, "y1:", y1, "\n")
+  a <- a - lr * aa[1:6]
+  x1 <- x1 - lr * aa[7]
+  y1 <- y1 - lr * aa[8]
+}
 ```
---->
+
+```{r}
+plot(chist[1:iter], type = "l", lwd = 2, xlab = "Iteration", ylab = "Cost",
+     cex.lab = 1.5, cex.axis = 1.5)
+```
+
+```{r}
+plot(ghist[1:iter], type = "l", lwd = 2, xlab = "Iteration", ylab = "Gradient norm",
+     cex.lab = 1.5, cex.axis = 1.5)
+```
