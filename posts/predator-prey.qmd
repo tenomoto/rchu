@@ -205,7 +205,7 @@ adjoint <- function(dt, a, x, y) {
     ay[n] <- ay[n] + dt * a[3] * x[n] * ax[n+1]
     ax[n] <- ax[n] + dt * a[2] * x[n] * ax[n+1]
     ax[n] <- ax[n] + (1 + dt * (a[1] + a[2] * x[n] + a[3] * y[n])) * ax[n+1]
-    cat(n, ":", aa, ax[n], ay[n], "\n")
+#    cat(n, ":", aa, ax[n], ay[n], "\n")
   }
   c(aa, ax[1], ay[1])
 }
@@ -270,7 +270,7 @@ for (iter in 1: itermax) {
   }
   xhist[, iter] <- c(a, x1, y1)
 #  cat("iter:", iter, "cost", chist[iter],  "a:", a, "x1:", x1, "y1:", y1, "\n")
-  cat("iter:", iter, "cost", chist[iter], "|g|", ghist[iter], "x1:", x1, "y1:", y1, "\n")
+#  cat("iter:", iter, "cost", chist[iter], "|g|", ghist[iter], "x1:", x1, "y1:", y1, "\n")
   a <- a - lr * aa[1:6]
   x1 <- x1 - lr * aa[7]
   y1 <- y1 - lr * aa[8]
