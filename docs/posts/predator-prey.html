@@ -324,7 +324,7 @@ L(\mathbf{x}, \mathbf{z}, \lambda) = J(\mathbf{x}, z_1, \dots, z_{N}) - \lambda_
 \tag{2}\]</span></span></p>
 <p>ここで<span class="math inline">\(\boldsymbol\lambda = (\lambda_1,\dots,\lambda_{N+1})^\mathrm{T}\)</span>はLagrangeの未定乗数である。 Lagrange函数の鞍点は、<span class="math inline">\(\mathbf{x},\mathbf{z}, \boldsymbol\lambda\)</span>空間で<span class="math inline">\(L\)</span>の微分が同時に0に一点である。 鞍点では、<span class="math inline">\(\partial L/\partial \boldsymbol\lambda\)</span>から支配方程式(<a href="#eq-predator-prey-forward" class="quarto-xref">Equation&nbsp;1</a>) が得られる。</p>
 <p>また、<span class="math inline">\(\partial L/\partial \mathbf{z}\)</span>から随伴方程式 <span id="eq-predator-prey-adjoint"><span class="math display">\[
-\lambda_{N+1} = 1,\;\lambda_n = \sum_{i=n+1}^{N+1} \frac{\partial f_i}{\partial z_n}\lambda_{i} ,\;n = N, \dots, 1
+\lambda_{N+1} = \frac{\partial J}{\partial z_{N+1}},\;\lambda_n = \frac{\partial J}{\partial z_n} + \sum_{i=n+1}^{N+1} \frac{\partial f_i}{\partial z_n}\lambda_{i} ,\;n = N, \dots, 1
 \tag{3}\]</span></span> が得られる。</p>
 <p>さらに、<span class="math inline">\(\partial L/\partial \mathbf{x}\)</span>からコスト函数の入力に対する微分、</p>
 <p><span class="math display">\[
@@ -379,30 +379,39 @@ L = \dots -\lambda_Y(Y - G(X, \dots)) - \lambda_Z(Z - F(X, Y, \dots)) + \dots
 <span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">x =</span> x, <span class="at">y =</span> y)</span>
 <span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>adjoint <span class="ot">&lt;-</span> <span class="cf">function</span>(dt, a, x, y) {</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>adjoint <span class="ot">&lt;-</span> <span class="cf">function</span>(dt, a, x, y, xo, yo, tobs) {</span>
 <span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  nmax <span class="ot">&lt;-</span> <span class="fu">length</span>(x)</span>
 <span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  aa <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="fu">length</span>(a))</span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  ax <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, nmax<span class="sc">+</span><span class="dv">1</span>)</span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  ay <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, nmax<span class="sc">+</span><span class="dv">1</span>)</span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  ax[nmax<span class="sc">+</span><span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  ay[nmax<span class="sc">+</span><span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (n <span class="cf">in</span> (nmax)<span class="sc">:</span><span class="dv">1</span>) {</span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>    aa[<span class="dv">6</span>] <span class="ot">&lt;-</span> aa[<span class="dv">6</span>] <span class="sc">+</span> dt <span class="sc">*</span> x[n] <span class="sc">*</span> y[n] <span class="sc">*</span> ay[n<span class="sc">+</span><span class="dv">1</span>]</span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    aa[<span class="dv">5</span>] <span class="ot">&lt;-</span> aa[<span class="dv">5</span>] <span class="sc">+</span> dt <span class="sc">*</span> y[n] <span class="sc">*</span> y[n] <span class="sc">*</span> ay[n<span class="sc">+</span><span class="dv">1</span>]</span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    aa[<span class="dv">4</span>] <span class="ot">&lt;-</span> aa[<span class="dv">4</span>] <span class="sc">+</span> dt <span class="sc">*</span> y[n] <span class="sc">*</span> ay[n<span class="sc">+</span><span class="dv">1</span>]</span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>    ax[n] <span class="ot">&lt;-</span> ax[n] <span class="sc">+</span> dt <span class="sc">*</span> a[<span class="dv">6</span>] <span class="sc">*</span> y[n] <span class="sc">*</span> ay[n<span class="sc">+</span><span class="dv">1</span>]</span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>    ay[n] <span class="ot">&lt;-</span> ay[n] <span class="sc">+</span> dt <span class="sc">*</span> a[<span class="dv">5</span>] <span class="sc">*</span> y[n] <span class="sc">*</span> ay[n<span class="sc">+</span><span class="dv">1</span>]</span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    ay[n] <span class="ot">&lt;-</span> ay[n]  <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> dt <span class="sc">*</span> (a[<span class="dv">4</span>] <span class="sc">+</span> a[<span class="dv">5</span>] <span class="sc">*</span> y[n] <span class="sc">+</span> a[<span class="dv">6</span>] <span class="sc">*</span> x[n])) <span class="sc">*</span> ay[n<span class="sc">+</span><span class="dv">1</span>]</span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    aa[<span class="dv">3</span>] <span class="ot">&lt;-</span> aa[<span class="dv">3</span>] <span class="sc">+</span> dt <span class="sc">*</span> y[n] <span class="sc">*</span> x[n] <span class="sc">*</span> ax[n<span class="sc">+</span><span class="dv">1</span>]</span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    aa[<span class="dv">2</span>] <span class="ot">&lt;-</span> aa[<span class="dv">2</span>] <span class="sc">+</span> dt <span class="sc">*</span> x[n] <span class="sc">*</span> x[n] <span class="sc">*</span> ax[n<span class="sc">+</span><span class="dv">1</span>]</span>
-<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    aa[<span class="dv">1</span>] <span class="ot">&lt;-</span> aa[<span class="dv">1</span>] <span class="sc">+</span> dt <span class="sc">*</span> x[n] <span class="sc">*</span> ax[n<span class="sc">+</span><span class="dv">1</span>]</span>
-<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>    ay[n] <span class="ot">&lt;-</span> ay[n] <span class="sc">+</span> dt <span class="sc">*</span> a[<span class="dv">3</span>] <span class="sc">*</span> x[n] <span class="sc">*</span> ax[n<span class="sc">+</span><span class="dv">1</span>]</span>
-<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>    ax[n] <span class="ot">&lt;-</span> ax[n] <span class="sc">+</span> dt <span class="sc">*</span> a[<span class="dv">2</span>] <span class="sc">*</span> x[n] <span class="sc">*</span> ax[n<span class="sc">+</span><span class="dv">1</span>]</span>
-<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>    ax[n] <span class="ot">&lt;-</span> ax[n] <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> dt <span class="sc">*</span> (a[<span class="dv">1</span>] <span class="sc">+</span> a[<span class="dv">2</span>] <span class="sc">*</span> x[n] <span class="sc">+</span> a[<span class="dv">3</span>] <span class="sc">*</span> y[n])) <span class="sc">*</span> ax[n<span class="sc">+</span><span class="dv">1</span>]</span>
-<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a><span class="co">#    cat(n, ":", aa, ax[n], ay[n], "\n")</span></span>
-<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(aa, ax[<span class="dv">1</span>], ay[<span class="dv">1</span>])</span>
-<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  ax <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, nmax)</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  ay <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, nmax)</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (n <span class="cf">in</span> (nmax<span class="dv">-1</span>)<span class="sc">:</span><span class="dv">1</span>) {</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="co">#    if (n == 1) {</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="co">#      ax[2] &lt;- ax[2] * 2</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="co">#      ay[2] &lt;- ay[2] * 2</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a><span class="co">#    }</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    aa[<span class="dv">6</span>] <span class="ot">&lt;-</span> aa[<span class="dv">6</span>] <span class="sc">+</span> dt <span class="sc">*</span> x[n] <span class="sc">*</span> y[n] <span class="sc">*</span> ay[n<span class="sc">+</span><span class="dv">1</span>]</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>    aa[<span class="dv">5</span>] <span class="ot">&lt;-</span> aa[<span class="dv">5</span>] <span class="sc">+</span> dt <span class="sc">*</span> y[n] <span class="sc">*</span> y[n] <span class="sc">*</span> ay[n<span class="sc">+</span><span class="dv">1</span>]</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>    aa[<span class="dv">4</span>] <span class="ot">&lt;-</span> aa[<span class="dv">4</span>] <span class="sc">+</span> dt <span class="sc">*</span> y[n] <span class="sc">*</span> ay[n<span class="sc">+</span><span class="dv">1</span>]</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    ax[n] <span class="ot">&lt;-</span> ax[n] <span class="sc">+</span> dt <span class="sc">*</span> a[<span class="dv">6</span>] <span class="sc">*</span> y[n] <span class="sc">*</span> ay[n<span class="sc">+</span><span class="dv">1</span>]</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    ay[n] <span class="ot">&lt;-</span> ay[n] <span class="sc">+</span> dt <span class="sc">*</span> a[<span class="dv">5</span>] <span class="sc">*</span> y[n] <span class="sc">*</span> ay[n<span class="sc">+</span><span class="dv">1</span>]</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    ay[n] <span class="ot">&lt;-</span> ay[n]  <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> dt <span class="sc">*</span> (a[<span class="dv">4</span>] <span class="sc">+</span> a[<span class="dv">5</span>] <span class="sc">*</span> y[n] <span class="sc">+</span> a[<span class="dv">6</span>] <span class="sc">*</span> x[n])) <span class="sc">*</span> ay[n<span class="sc">+</span><span class="dv">1</span>]</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    aa[<span class="dv">3</span>] <span class="ot">&lt;-</span> aa[<span class="dv">3</span>] <span class="sc">+</span> dt <span class="sc">*</span> y[n] <span class="sc">*</span> x[n] <span class="sc">*</span> ax[n<span class="sc">+</span><span class="dv">1</span>]</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>    aa[<span class="dv">2</span>] <span class="ot">&lt;-</span> aa[<span class="dv">2</span>] <span class="sc">+</span> dt <span class="sc">*</span> x[n] <span class="sc">*</span> x[n] <span class="sc">*</span> ax[n<span class="sc">+</span><span class="dv">1</span>]</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>    aa[<span class="dv">1</span>] <span class="ot">&lt;-</span> aa[<span class="dv">1</span>] <span class="sc">+</span> dt <span class="sc">*</span> x[n] <span class="sc">*</span> ax[n<span class="sc">+</span><span class="dv">1</span>]</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>    ay[n] <span class="ot">&lt;-</span> ay[n] <span class="sc">+</span> dt <span class="sc">*</span> a[<span class="dv">3</span>] <span class="sc">*</span> x[n] <span class="sc">*</span> ax[n<span class="sc">+</span><span class="dv">1</span>]</span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>    ax[n] <span class="ot">&lt;-</span> ax[n] <span class="sc">+</span> dt <span class="sc">*</span> a[<span class="dv">2</span>] <span class="sc">*</span> x[n] <span class="sc">*</span> ax[n<span class="sc">+</span><span class="dv">1</span>]</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>    ax[n] <span class="ot">&lt;-</span> ax[n] <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> dt <span class="sc">*</span> (a[<span class="dv">1</span>] <span class="sc">+</span> a[<span class="dv">2</span>] <span class="sc">*</span> x[n] <span class="sc">+</span> a[<span class="dv">3</span>] <span class="sc">*</span> y[n])) <span class="sc">*</span> ax[n<span class="sc">+</span><span class="dv">1</span>]</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (n <span class="sc">%in%</span> tobs) {</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>      <span class="co"># add dJ/dx and dJ/dy</span></span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a> <span class="co">#     cat("Observation at time:", n, "dx=", x[n] - xo[n], "dy", y[n] - yo[n], "\n")</span></span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>      ax[n] <span class="ot">&lt;-</span> ax[n] <span class="sc">+</span> (x[n] <span class="sc">-</span> xo[n])</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>      ay[n] <span class="ot">&lt;-</span> ay[n] <span class="sc">+</span> (y[n] <span class="sc">-</span> yo[n])</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a> <span class="co">#   cat(n, ":", aa, ax[n], ay[n], "\n")</span></span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a><span class="co">#  cat("Final adjoint state:", aa, "\n")</span></span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(aa, ax[<span class="dv">1</span>], ay[<span class="dv">1</span>])</span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="同化実験" class="level2">
@@ -411,18 +420,18 @@ L = \dots -\lambda_Y(Y - G(X, \dots)) - \lambda_Z(Z - F(X, Y, \dots)) + \dots
 <div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>nmax <span class="ot">&lt;-</span> <span class="dv">501</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>dt <span class="ot">&lt;-</span> <span class="fl">0.001</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="sc">-</span><span class="dv">2</span>, <span class="sc">-</span><span class="dv">4</span>, <span class="sc">-</span><span class="dv">6</span>, <span class="dv">2</span>, <span class="dv">4</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>at <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="sc">-</span><span class="dv">2</span>, <span class="sc">-</span><span class="dv">4</span>, <span class="sc">-</span><span class="dv">6</span>, <span class="dv">2</span>, <span class="dv">4</span>)</span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="dv">1</span></span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>y1 <span class="ot">&lt;-</span> <span class="dv">1</span></span>
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>tobs <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">2</span>, nmax, <span class="at">by =</span> <span class="dv">2</span>)</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>forward.result <span class="ot">&lt;-</span> <span class="fu">forward</span>(dt, a, x1, y1, nmax)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>forward.result <span class="ot">&lt;-</span> <span class="fu">forward</span>(dt, at, x1, y1, nmax)</span>
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>xt <span class="ot">&lt;-</span> forward.result<span class="sc">$</span>x</span>
 <span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>yt <span class="ot">&lt;-</span> forward.result<span class="sc">$</span>y</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>真値から観測を作成する。</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>xo <span class="ot">&lt;-</span> xt[tobs]</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>yo <span class="ot">&lt;-</span> yt[tobs]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>xo <span class="ot">&lt;-</span> xt</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>yo <span class="ot">&lt;-</span> yt</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>calc.cost <span class="ot">&lt;-</span> <span class="cf">function</span>(xf, yf, xo, yo) {</span>
@@ -431,7 +440,7 @@ L = \dots -\lambda_Y(Y - G(X, \dots)) - \lambda_Z(Z - F(X, Y, \dots)) + \dots
 </div>
 <p>次に、観測値を同化して順行モデルのパラメタと初期値を推定する。</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>lr <span class="ot">&lt;-</span> <span class="fl">0.03</span></span>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>lr <span class="ot">&lt;-</span> <span class="fl">0.001</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>)</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="dv">2</span></span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>y1 <span class="ot">&lt;-</span> <span class="dv">2</span></span>
@@ -443,33 +452,29 @@ L = \dots -\lambda_Y(Y - G(X, \dots)) - \lambda_Z(Z - F(X, Y, \dots)) + \dots
 <span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>xhist <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">8</span> <span class="sc">*</span> itermax), <span class="at">nrow =</span> <span class="dv">8</span>)</span>
 <span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (iter <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span> itermax) {</span>
 <span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  forward.result <span class="ot">&lt;-</span> <span class="fu">forward</span>(dt, a, x1, y1, nmax)</span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  xf <span class="ot">&lt;-</span> forward.result<span class="sc">$</span>x[tobs]</span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  yf <span class="ot">&lt;-</span> forward.result<span class="sc">$</span>y[tobs]</span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>  aa <span class="ot">&lt;-</span> <span class="fu">adjoint</span>(dt, a, xf, yf)</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  xf <span class="ot">&lt;-</span> forward.result<span class="sc">$</span>x</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  yf <span class="ot">&lt;-</span> forward.result<span class="sc">$</span>y</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>  aa <span class="ot">&lt;-</span> <span class="fu">adjoint</span>(dt, a, xf, yf, xo, yo, tobs)</span>
 <span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>  ghist[iter] <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">sum</span>(aa<span class="sc">^</span><span class="dv">2</span>))</span>
 <span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (ghist[iter] <span class="sc">&lt;</span> <span class="fl">1e-6</span>) {</span>
 <span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"Converged at iteration"</span>, iter, <span class="st">"with cost"</span>, chist[iter], <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
 <span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">break</span></span>
 <span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>  chist[iter] <span class="ot">&lt;-</span> <span class="fu">calc.cost</span>(xf, yf, xo, yo)</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>  chist[iter] <span class="ot">&lt;-</span> <span class="fu">calc.cost</span>(xf[tobs], yf[tobs], xo[tobs], yo[tobs])</span>
 <span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (chist[iter] <span class="sc">&gt;=</span> chist[iter<span class="dv">-1</span>] <span class="sc">&amp;&amp;</span> iter <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
 <span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"Cost did not decrease at iteration"</span>, iter, <span class="st">"with cost"</span>, chist[iter], <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
 <span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">break</span></span>
 <span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>  }</span>
 <span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>  xhist[, iter] <span class="ot">&lt;-</span> <span class="fu">c</span>(a, x1, y1)</span>
-<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a><span class="co">#  cat("iter:", iter, "cost", chist[iter],  "a:", a, "x1:", x1, "y1:", y1, "\n")</span></span>
-<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a><span class="co">#  cat("iter:", iter, "cost", chist[iter], "|g|", ghist[iter], "x1:", x1, "y1:", y1, "\n")</span></span>
-<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>  a <span class="ot">&lt;-</span> a <span class="sc">-</span> lr <span class="sc">*</span> aa[<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>]</span>
-<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>  x1 <span class="ot">&lt;-</span> x1 <span class="sc">-</span> lr <span class="sc">*</span> aa[<span class="dv">7</span>]</span>
-<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>  y1 <span class="ot">&lt;-</span> y1 <span class="sc">-</span> lr <span class="sc">*</span> aa[<span class="dv">8</span>]</span>
-<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Cost did not decrease at iteration 50 with cost 1.011317 </code></pre>
-</div>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a><span class="co">#  cat("iter:", iter, "cost:", chist[iter], "|g|:", ghist[iter], "a:", a, "x1:", x1, "y1:", y1, "\n")</span></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>  a <span class="ot">&lt;-</span> a <span class="sc">-</span> lr <span class="sc">*</span> aa[<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>]</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>  x1 <span class="ot">&lt;-</span> x1 <span class="sc">-</span> lr <span class="sc">*</span> aa[<span class="dv">7</span>]</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>  y1 <span class="ot">&lt;-</span> y1 <span class="sc">-</span> lr <span class="sc">*</span> aa[<span class="dv">8</span>]</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(chist[<span class="dv">1</span><span class="sc">:</span>iter], <span class="at">type =</span> <span class="st">"l"</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">xlab =</span> <span class="st">"Iteration"</span>, <span class="at">ylab =</span> <span class="st">"Cost"</span>,</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">cex.lab =</span> <span class="fl">1.5</span>, <span class="at">cex.axis =</span> <span class="fl">1.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">log10</span>(chist[<span class="dv">1</span><span class="sc">:</span>iter]), <span class="at">type =</span> <span class="st">"l"</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">xlab =</span> <span class="st">"Iteration"</span>, <span class="at">ylab =</span> <span class="st">"log10 J"</span>,</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">cex.lab =</span> <span class="fl">1.5</span>, <span class="at">cex.axis =</span> <span class="fl">1.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -479,12 +484,56 @@ L = \dots -\lambda_Y(Y - G(X, \dots)) - \lambda_Z(Z - F(X, Y, \dots)) + \dots
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(ghist[<span class="dv">1</span><span class="sc">:</span>iter], <span class="at">type =</span> <span class="st">"l"</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">xlab =</span> <span class="st">"Iteration"</span>, <span class="at">ylab =</span> <span class="st">"Gradient norm"</span>,</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">cex.lab =</span> <span class="fl">1.5</span>, <span class="at">cex.axis =</span> <span class="fl">1.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">log10</span>(ghist[<span class="dv">1</span><span class="sc">:</span>iter]), <span class="at">type =</span> <span class="st">"l"</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">xlab =</span> <span class="st">"Iteration"</span>, <span class="at">ylab =</span> <span class="st">"log10|g|"</span>,</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">cex.lab =</span> <span class="fl">1.5</span>, <span class="at">cex.axis =</span> <span class="fl">1.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
 <p><img src="predator-prey_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(xhist[<span class="dv">7</span>,], <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">2</span>), <span class="at">type =</span> <span class="st">"l"</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">xlab =</span> <span class="st">"Iteration"</span>, <span class="at">ylab =</span> <span class="st">"Initial conditions"</span>,</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">cex.lab =</span> <span class="fl">1.5</span>, <span class="at">cex.axis =</span> <span class="fl">1.5</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(xhist[<span class="dv">8</span>,], <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="st">"red"</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"x1"</span>, <span class="st">"y1"</span>),</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"black"</span>, <span class="st">"red"</span>), <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">cex =</span> <span class="fl">1.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="predator-prey_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(xhist[<span class="dv">1</span>,], <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">10</span>, <span class="dv">10</span>), <span class="at">type =</span> <span class="st">"l"</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">xlab =</span> <span class="st">"Iteration"</span>, <span class="at">ylab =</span> <span class="st">"x parameters"</span>,</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">cex.lab =</span> <span class="fl">1.5</span>, <span class="at">cex.axis =</span> <span class="fl">1.5</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(xhist[<span class="dv">2</span>,], <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="st">"red"</span>)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(xhist[<span class="dv">3</span>,], <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="st">"blue"</span>)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"a1"</span>, <span class="st">"a2"</span>, <span class="st">"a3"</span>),</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"black"</span>, <span class="st">"red"</span>, <span class="st">"blue"</span>), <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">cex =</span> <span class="fl">1.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="predator-prey_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(xhist[<span class="dv">4</span>,], <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">10</span>, <span class="dv">10</span>), <span class="at">type =</span> <span class="st">"l"</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">xlab =</span> <span class="st">"Iteration"</span>, <span class="at">ylab =</span> <span class="st">"y parameters"</span>,</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">cex.lab =</span> <span class="fl">1.5</span>, <span class="at">cex.axis =</span> <span class="fl">1.5</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(xhist[<span class="dv">5</span>,], <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="st">"red"</span>)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(xhist[<span class="dv">6</span>,], <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="st">"blue"</span>)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"a4"</span>, <span class="st">"a5"</span>, <span class="st">"a6"</span>),</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"black"</span>, <span class="st">"red"</span>, <span class="st">"blue"</span>), <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">cex =</span> <span class="fl">1.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="predator-prey_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>

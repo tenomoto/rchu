@@ -103,7 +103,7 @@ Lagrange函数の鞍点は、$\mathbf{x},\mathbf{z}, \boldsymbol\lambda$空間�
 
 また、$\partial L/\partial \mathbf{z}$から随伴方程式
 $$
-\lambda_{N+1} = 1,\;\lambda_n = \sum_{i=n+1}^{N+1} \frac{\partial f_i}{\partial z_n}\lambda_{i} ,\;n = N, \dots, 1
+\lambda_{N+1} = \frac{\partial J}{\partial z_{N+1}},\;\lambda_n = \frac{\partial J}{\partial z_n} + \sum_{i=n+1}^{N+1} \frac{\partial f_i}{\partial z_n}\lambda_{i} ,\;n = N, \dots, 1
 $$ {#eq-predator-prey-adjoint}
 が得られる。
 
@@ -185,14 +185,16 @@ forward <- function(dt, a, x1, y1, nmax) {
   list(x = x, y = y)
 }
 
-adjoint <- function(dt, a, x, y) {
+adjoint <- function(dt, a, x, y, xo, yo, tobs) {
   nmax <- length(x)
   aa <- rep(0, length(a))
-  ax <- rep(0, nmax+1)
-  ay <- rep(0, nmax+1)
-  ax[nmax+1] <- 1
-  ay[nmax+1] <- 1
-  for (n in (nmax):1) {
+  ax <- rep(0, nmax)
+  ay <- rep(0, nmax)
+  for (n in (nmax-1):1) {
+#    if (n == 1) {
+#      ax[2] <- ax[2] * 2
+#      ay[2] <- ay[2] * 2
+#    }
     aa[6] <- aa[6] + dt * x[n] * y[n] * ay[n+1]
     aa[5] <- aa[5] + dt * y[n] * y[n] * ay[n+1]
     aa[4] <- aa[4] + dt * y[n] * ay[n+1]
@@ -205,8 +207,15 @@ adjoint <- function(dt, a, x, y) {
     ay[n] <- ay[n] + dt * a[3] * x[n] * ax[n+1]
     ax[n] <- ax[n] + dt * a[2] * x[n] * ax[n+1]
     ax[n] <- ax[n] + (1 + dt * (a[1] + a[2] * x[n] + a[3] * y[n])) * ax[n+1]
-#    cat(n, ":", aa, ax[n], ay[n], "\n")
+    if (n %in% tobs) {
+      # add dJ/dx and dJ/dy
+ #     cat("Observation at time:", n, "dx=", x[n] - xo[n], "dy", y[n] - yo[n], "\n")
+      ax[n] <- ax[n] + (x[n] - xo[n])
+      ay[n] <- ay[n] + (y[n] - yo[n])
+    }
+ #   cat(n, ":", aa, ax[n], ay[n], "\n")
   }
+#  cat("Final adjoint state:", aa, "\n")
   c(aa, ax[1], ay[1])
 }
 ```
@@ -218,11 +227,11 @@ adjoint <- function(dt, a, x, y) {
 ```{r}
 nmax <- 501
 dt <- 0.001
-a <- c(4, -2, -4, -6, 2, 4)
+at <- c(4, -2, -4, -6, 2, 4)
 x1 <- 1
 y1 <- 1
 tobs <- seq(2, nmax, by = 2)
-forward.result <- forward(dt, a, x1, y1, nmax)
+forward.result <- forward(dt, at, x1, y1, nmax)
 xt <- forward.result$x
 yt <- forward.result$y
 ```
@@ -230,8 +239,8 @@ yt <- forward.result$y
 真値から観測を作成する。
 
 ```{r}
-xo <- xt[tobs]
-yo <- yt[tobs]
+xo <- xt
+yo <- yt
 ```
 
 ```{r}
@@ -243,7 +252,7 @@ calc.cost <- function(xf, yf, xo, yo) {
 
 次に、観測値を同化して順行モデルのパラメタと初期値を推定する。
 ```{r}
-lr <- 0.03
+lr <- 0.001
 a <- c(1, 0, 0, -1, 0, 0)
 x1 <- 2
 y1 <- 2
@@ -255,22 +264,21 @@ ghist <- rep(0, itermax)
 xhist <- matrix(rep(0, 8 * itermax), nrow = 8)
 for (iter in 1: itermax) {
   forward.result <- forward(dt, a, x1, y1, nmax)
-  xf <- forward.result$x[tobs]
-  yf <- forward.result$y[tobs]
-  aa <- adjoint(dt, a, xf, yf)
+  xf <- forward.result$x
+  yf <- forward.result$y
+  aa <- adjoint(dt, a, xf, yf, xo, yo, tobs)
   ghist[iter] <- sqrt(sum(aa^2))
   if (ghist[iter] < 1e-6) {
     cat("Converged at iteration", iter, "with cost", chist[iter], "\n")
     break
   }
-  chist[iter] <- calc.cost(xf, yf, xo, yo)
+  chist[iter] <- calc.cost(xf[tobs], yf[tobs], xo[tobs], yo[tobs])
   if (chist[iter] >= chist[iter-1] && iter > 1) {
     cat("Cost did not decrease at iteration", iter, "with cost", chist[iter], "\n")
     break
   }
   xhist[, iter] <- c(a, x1, y1)
-#  cat("iter:", iter, "cost", chist[iter],  "a:", a, "x1:", x1, "y1:", y1, "\n")
-#  cat("iter:", iter, "cost", chist[iter], "|g|", ghist[iter], "x1:", x1, "y1:", y1, "\n")
+#  cat("iter:", iter, "cost:", chist[iter], "|g|:", ghist[iter], "a:", a, "x1:", x1, "y1:", y1, "\n")
   a <- a - lr * aa[1:6]
   x1 <- x1 - lr * aa[7]
   y1 <- y1 - lr * aa[8]
@@ -278,11 +286,37 @@ for (iter in 1: itermax) {
 ```
 
 ```{r}
-plot(chist[1:iter], type = "l", lwd = 2, xlab = "Iteration", ylab = "Cost",
+plot(log10(chist[1:iter]), type = "l", lwd = 2, xlab = "Iteration", ylab = "log10 J",
      cex.lab = 1.5, cex.axis = 1.5)
 ```
 
 ```{r}
-plot(ghist[1:iter], type = "l", lwd = 2, xlab = "Iteration", ylab = "Gradient norm",
+plot(log10(ghist[1:iter]), type = "l", lwd = 2, xlab = "Iteration", ylab = "log10|g|",
      cex.lab = 1.5, cex.axis = 1.5)
+```
+
+```{r}
+plot(xhist[7,], ylim = c(0, 2), type = "l", lwd = 2, xlab = "Iteration", ylab = "Initial conditions",
+     cex.lab = 1.5, cex.axis = 1.5)
+lines(xhist[8,], lwd = 2, col = "red")
+legend("topright", legend = c("x1", "y1"),
+       col = c("black", "red"), lwd = 2, cex = 1.5)
+```
+
+```{r}
+plot(xhist[1,], ylim = c(-10, 10), type = "l", lwd = 2, xlab = "Iteration", ylab = "x parameters",
+     cex.lab = 1.5, cex.axis = 1.5)
+lines(xhist[2,], lwd = 2, col = "red")
+lines(xhist[3,], lwd = 2, col = "blue")
+legend("topright", legend = c("a1", "a2", "a3"),
+       col = c("black", "red", "blue"), lwd = 2, cex = 1.5)
+```
+
+```{r}
+plot(xhist[4,], ylim = c(-10, 10), type = "l", lwd = 2, xlab = "Iteration", ylab = "y parameters",
+     cex.lab = 1.5, cex.axis = 1.5)
+lines(xhist[5,], lwd = 2, col = "red")
+lines(xhist[6,], lwd = 2, col = "blue")
+legend("topright", legend = c("a4", "a5", "a6"),
+       col = c("black", "red", "blue"), lwd = 2, cex = 1.5)
 ```
