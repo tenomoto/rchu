@@ -7,10 +7,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="榎本剛">
-<meta name="dcterms.date" content="2025-04-20">
-<meta name="description" content="経度と緯度で指定した領域の地図投影">
+<meta name="dcterms.date" content="2025-05-25">
+<meta name="description" content="境界値問題を数値的に解く">
 
-<title>経度・緯度の箱 – R中心生活</title>
+<title>1次元Poisson方程式 – R中心生活</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -57,7 +57,26 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -104,6 +123,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -155,17 +203,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">経度・緯度の箱</h1>
+<h1 class="title">1次元Poisson方程式</h1>
   <div class="quarto-categories">
-    <div class="quarto-category">graphics</div>
-    <div class="quarto-category">package</div>
-    <div class="quarto-category">terra</div>
+    <div class="quarto-category">numerics</div>
   </div>
   </div>
 
 <div>
   <div class="description">
-    経度と緯度で指定した領域の地図投影
+    境界値問題を数値的に解く
   </div>
 </div>
 
@@ -182,7 +228,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 20, 2025</p>
+      <p class="date">May 25, 2025</p>
     </div>
   </div>
   
@@ -194,61 +240,191 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>領域を示すために、経度と緯度を指定した箱を描くことがある。 地図投影投影すると、長方形でなくなり四隅を指定しただけでは、領域を正しく囲むことができなくなることがある。</p>
-<p>ポーラーステレオの場合、四隅を指定すると台形で描かれてしまう。 そこで、経度を少しずつ変えた点を追加して曲がって見えるようにする。</p>
+<p>1次元Poisson方程式を数値的に解いて誤差を調べてみます。</p>
+<section id="定式化" class="level2">
+<h2 class="anchored" data-anchor-id="定式化">定式化</h2>
+<p>内部領域<span class="math inline">\(\Omega:0 &lt; x &lt; 1\)</span>において</p>
+<p><span id="eq-poisson"><span class="math display">\[
+\nabla^2 u = r
+\tag{1}\]</span></span> が与えられ、境界 <span class="math inline">\(\partial\Omega: x=0, x=1\)</span> で<span class="math inline">\(u(0)=u(1)=0\)</span> （Dirichlet境界条件）であるとします。</p>
+<p>領域を<span class="math inline">\(n\)</span>個に分割し、<span class="math inline">\(x_0=0,\,x_n=1\)</span>とする。<a href="#eq-poisson" class="quarto-xref">Equation&nbsp;1</a>を中央差分で離散化します。</p>
+<p><span id="eq-discretized-poisson"><span class="math display">\[
+\frac{\phi_{i+1} + \phi_{i-1} - 2\phi_i}{h^2} = \rho_i
+\tag{2}\]</span></span></p>
+<p>行列とベクトルを用いると、<a href="#eq-discretized-poisson" class="quarto-xref">Equation&nbsp;2</a>を表すと次のように書けます。</p>
+<p><span class="math display">\[
+\begin{bmatrix}
+-2 &amp; 1 &amp; \dots &amp; 0\\
+1 &amp; -2 &amp; 1 &amp; \vdots\\
+\vdots &amp; &amp; \ddots &amp; \\
+0 &amp; \dots &amp; 0 &amp; -2
+\end{bmatrix}
+\begin{bmatrix}
+\phi_1 \\
+\phi_2 \\
+\vdots \\
+\phi_{n-1}
+\end{bmatrix}=
+\begin{bmatrix}
+\rho_1 \\
+\rho_2 \\
+\vdots \\
+\rho_{n-1}
+\end{bmatrix}
+\]</span></p>
+</section>
+<section id="実装" class="level2">
+<h2 class="anchored" data-anchor-id="実装">実装</h2>
+<!---
+### 三重対角行列
+
+limSolveパッケージの`Solve.tridiag()`を解く場合は次のようになります。
+
+```}
+#| code-fold: true
+library(limSolve)
+poisson.tridiag <- function(r) {
+  n <- length(r)
+  diam1 <- rep(1, n-1)
+  dia <- rep(-2, n)
+  diap1 <- rep(1, n-1)
+  Solve.tridiag(diam1, dia, diap1, r) 
+}
+```
+
+
+三重対角行列を解くThomasの方法[@Quarteroni:2007, p. 358--359]をRで実装すると次のようになります。
+
+
+
+::: {.cell}
+
+```{.r .cell-code}
+solve.tridiag.thomas <- function(a, b, c, f) {
+  n <- length(a)
+  al <- rep(0, n)
+  bt <- rep(0, n-1)
+  y <- rep(0, n)
+  x <- rep(0, n)
+  al[1] <- a[1]
+  y[1] <- f[1]
+  for (i in 2:n) {
+    bt[i-1] = b[i-1] / al[i-1]
+    al[i] <- a[i] - bt[i-1] * c[i-1]
+    y[i] <- f[i] - bt[i-1] * y[i-1]
+  }
+  x[n] <- y[n] / al[n]
+  for (i in (n-1):1){
+    x[i] <- (y[i] - c[i] * x[i+1]) / al[i]
+  }
+  x
+}
+```
+:::
+
+
+--->
+<section id="高速フーリエ変換" class="level3">
+<h3 class="anchored" data-anchor-id="高速フーリエ変換">高速フーリエ変換</h3>
+<p>行列の固有値が<span class="math inline">\(\lambda_i=-4\sin^2(i\pi/2n)\)</span>であることを用いると、高速フーリエ変換（FFT）を用いて効率的に解くこともできます。 gsignalパッケージの離散sin変換<code>dst()</code>とその逆変換<code>idst()</code>を用いると次のように書けます。</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>genlonlat <span class="ot">&lt;-</span> <span class="cf">function</span>(lon1, lon2, lat1, lat2, <span class="at">dlon =</span> <span class="dv">1</span>) {</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  lon.seq <span class="ot">&lt;-</span> <span class="fu">seq</span>(lon1, lon2, <span class="at">by =</span> dlon)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cbind</span>(<span class="at">id =</span> <span class="dv">1</span>, <span class="at">part =</span> <span class="dv">1</span>,                                                         </span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(lon.seq, <span class="fu">rev</span>(lon.seq), lon1),</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(<span class="fu">rep</span>(lat1, <span class="fu">length</span>(lon.seq)), <span class="fu">rep</span>(lat2, <span class="fu">length</span>(lon.seq)), lat1))</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">genlonlat</span>(<span class="dv">120</span>, <span class="dv">150</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>      id part       
- [1,]  1    1 120 20
- [2,]  1    1 125 20
- [3,]  1    1 130 20
- [4,]  1    1 135 20
- [5,]  1    1 140 20
- [6,]  1    1 145 20
- [7,]  1    1 150 20
- [8,]  1    1 150 50
- [9,]  1    1 145 50
-[10,]  1    1 140 50
-[11,]  1    1 135 50
-[12,]  1    1 130 50
-[13,]  1    1 125 50
-[14,]  1    1 120 50
-[15,]  1    1 120 20</code></pre>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gsignal)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>poisson.dst <span class="ot">&lt;-</span> <span class="cf">function</span>(r) {</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="fu">length</span>(r) <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  eig.val <span class="ot">&lt;-</span> <span class="sc">-</span><span class="dv">4</span> <span class="sc">*</span> <span class="fu">sin</span>(<span class="fl">0.5</span> <span class="sc">*</span> <span class="fu">seq</span>(n<span class="dv">-1</span>) <span class="sc">*</span> pi <span class="sc">/</span> n)<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">idst</span>(<span class="fu">dst</span>(r) <span class="sc">/</span> eig.val)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</div>
-<p>低緯度（<code>lat1</code>）上で経度が増加するように、高緯度では <code>rev()</code> を使って減少させる。 最後に視点を追加して閉じている。 ホームディレクトリの<code>~/.local/share/naturalearth/ne_50m</code> に Natural Earth のデータを置いておく。 <code>terra</code></p>
+</section>
+</section>
+<section id="テスト" class="level2">
+<h2 class="anchored" data-anchor-id="テスト">テスト</h2>
+<section id="テスト函数" class="level3">
+<h3 class="anchored" data-anchor-id="テスト函数">テスト函数</h3>
+<p><span id="eq-test-func"><span class="math display">\[
+u(x) = x^2 - x^4
+\tag{3}\]</span></span></p>
+<p><span class="math inline">\(\partial\Omega\)</span>で0となります。</p>
+<p><span id="eq-test-ddfunc"><span class="math display">\[
+r(x) = 2 - 12x^2
+\tag{4}\]</span></span></p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(terra)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>nedir <span class="ot">&lt;-</span> <span class="fu">path.expand</span>(<span class="st">"~/.local/share/naturalearth/ne_50m"</span>)</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>lshp <span class="ot">&lt;-</span> <span class="fu">file.path</span>(nedir, <span class="st">"/ne_50m_land.shp"</span>)</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>l50 <span class="ot">&lt;-</span> <span class="fu">vect</span>(lshp)</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>crdref <span class="ot">&lt;-</span> <span class="st">"+proj=longlat +datum=WGS84"</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>lonlat.japan <span class="ot">&lt;-</span> <span class="fu">genlonlat</span>(<span class="dv">120</span>, <span class="dv">150</span>, <span class="dv">20</span>, <span class="dv">50</span>)</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>pols.japan <span class="ot">&lt;-</span> <span class="fu">vect</span>(lonlat.japan, <span class="at">type =</span> <span class="st">"polygons"</span>, <span class="at">crs =</span> crdref)</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>newcrs <span class="ot">&lt;-</span> <span class="st">"+proj=stere +lon_0=135e +lat_0=90n"</span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>l50p <span class="ot">&lt;-</span> <span class="fu">project</span>(l50, newcrs)</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>pols.japan.p <span class="ot">&lt;-</span> <span class="fu">project</span>(pols.japan, newcrs)</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">graticule</span>(<span class="dv">30</span>, <span class="dv">30</span>, <span class="at">crs=</span>newcrs)</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(l50p, <span class="at">axes=</span><span class="cn">FALSE</span>, <span class="at">col=</span><span class="st">"bisque"</span>, <span class="at">background=</span><span class="st">"lightblue"</span>,</span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>     <span class="at">ext=</span><span class="fu">ext</span>(<span class="sc">-</span><span class="fl">1e+7</span>, <span class="fl">1e7</span>, <span class="sc">-</span><span class="fl">1e7</span>, <span class="fl">1e7</span>))</span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(pols.japan.p, <span class="at">border =</span> <span class="st">"black"</span>, <span class="at">lwd =</span> <span class="dv">5</span>, <span class="at">add =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(g, <span class="at">lab.cex =</span> <span class="dv">1</span>, <span class="at">add =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">65</span> <span class="co"># num of internal point + 1</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>x0 <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>hx <span class="ot">&lt;-</span> (x1 <span class="sc">-</span> x0) <span class="sc">/</span> n</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">seq</span>(x0<span class="sc">+</span>hx, x1<span class="sc">-</span>hx, <span class="at">by=</span>hx)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>f <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  x<span class="sc">^</span><span class="dv">2</span> <span class="sc">-</span> x<span class="sc">^</span><span class="dv">4</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>ddf <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2</span> <span class="sc">-</span> <span class="dv">12</span><span class="sc">*</span>x<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>ptrue <span class="ot">&lt;-</span> <span class="fu">f</span>(x)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>q <span class="ot">&lt;-</span> <span class="fu">ddf</span>(x)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>p0 <span class="ot">&lt;-</span> <span class="fu">f</span>(x0)</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">f</span>(x1)</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>r <span class="ot">&lt;-</span> q <span class="sc">*</span> hx<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>r[<span class="dv">1</span>] <span class="ot">&lt;-</span> r[<span class="dv">1</span>] <span class="sc">-</span> p0</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>r[<span class="fu">length</span>(r)] <span class="ot">&lt;-</span> r[<span class="fu">length</span>(r)] <span class="sc">-</span> p1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">poisson.dst</span>(r)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>dp <span class="ot">&lt;-</span> p <span class="sc">-</span> ptrue</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>l2 <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">mean</span>(dp<span class="sc">**</span><span class="dv">2</span>))</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>linf <span class="ot">&lt;-</span> <span class="fu">max</span>(<span class="fu">abs</span>(dp))</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x, p, <span class="at">xlab=</span><span class="st">"x"</span>, <span class="at">ylab=</span><span class="st">"p"</span>, <span class="at">pch=</span><span class="dv">4</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(x, ptrue, <span class="at">col=</span><span class="st">"red"</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="fu">text</span>(<span class="fl">0.0</span>, <span class="fl">0.1</span>, <span class="fu">paste</span>(<span class="st">"l2="</span>, <span class="fu">format</span>(l2, <span class="at">digits=</span><span class="dv">3</span>),<span class="at">sep=</span><span class="st">""</span>), <span class="at">adj=</span><span class="dv">0</span>)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="fu">text</span>(<span class="fl">0.0</span>, <span class="fl">0.07</span>, <span class="fu">paste</span>(<span class="st">"linf="</span>, <span class="fu">format</span>(linf, <span class="at">digits=</span><span class="dv">3</span>), <span class="at">sep=</span><span class="st">""</span>), <span class="at">adj=</span><span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="lonlatbox_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="poisson1d_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="切断誤差" class="level2">
+<h2 class="anchored" data-anchor-id="切断誤差">切断誤差</h2>
+<section id="差分法" class="level3">
+<h3 class="anchored" data-anchor-id="差分法">差分法</h3>
+<p>差分法の誤差を確認しましょう<span class="citation" data-cites="LeVeque:2007">(<a href="#ref-LeVeque:2007" role="doc-biblioref">LeVeque 2007</a>)</span>。 <span class="math inline">\(u(x)\)</span>をTalyor展開すると次のようになります。</p>
+<p><span id="eq-taylor-expansion"><span class="math display">\[
+\begin{aligned}
+u(x+h) &amp;= u(x) + hu'(x) + \frac{1}{2}h^2u''(x) + \frac{1}{6}h^3u^{(3)}(x) \\
+&amp;+ \frac{1}{24}h^4u^{(4)}(x) + O(h^5)\\
+u(x-h) &amp;= u(x) - hu'(x) + \frac{1}{2}h^2u''(x) - \frac{1}{6}h^3u^{(3)}(x) \\
+&amp;+ \frac{1}{24}h^4u^{(4)}(x) + O(h^5)
+\end{aligned}
+\tag{5}\]</span></span></p>
+<p>Poisson方程式に現れる2階微分は<a href="#eq-taylor-expansion" class="quarto-xref">Equation&nbsp;5</a>の差を取ることにより次のように書けます。 <span class="math display">\[
+D^2=u''(x) + \frac{1}{12}h^2u^{(4)}(x) + O(h^6)
+\]</span></p>
+<p><span class="math inline">\(h\)</span>が小さいとすると、主要な差分誤差は</p>
+<p><span class="math display">\[
+\tau= \frac{1}{12}h^2u^{(4)}(x)
+\]</span> と見積もられます。</p>
+<p>これを2回積分して<span class="math inline">\(\partial\Omega\)</span>で誤差が0であることを利用して定数を定めると、Poisson解の誤差は次のように書けます。</p>
+<p><span id="eq-estimated-error"><span class="math display">\[
+e(x) = -\frac{1}{12}h[u''(x)+\{u''(0)-u''(1)\}x-u''(0)]
+\tag{6}\]</span></span> <a href="#eq-test-func" class="quarto-xref">Equation&nbsp;3</a>の場合、<a href="#eq-estimated-error" class="quarto-xref">Equation&nbsp;6</a>は <span id="eq-estimated-error-test"><span class="math display">\[
+e(x) = -h^2x(1-x)
+\tag{7}\]</span></span> となります。</p>
+<p>数値誤差と<a href="#eq-estimated-error-test" class="quarto-xref">Equation&nbsp;7</a>を比較してみましょう。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x, dp, <span class="at">xlab=</span><span class="st">"x"</span>, <span class="at">ylab=</span><span class="st">"p-ptrue"</span>, <span class="at">pch=</span><span class="dv">4</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(x, hx <span class="sc">*</span> hx <span class="sc">*</span> x <span class="sc">*</span> (x <span class="sc">-</span> <span class="dv">1</span>), <span class="at">xlab=</span><span class="st">""</span>, <span class="at">ylab=</span><span class="st">""</span>, <span class="at">col=</span><span class="st">"red"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="poisson1d_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -256,7 +432,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-</main> <!-- /main -->
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-LeVeque:2007" class="csl-entry" role="listitem">
+LeVeque, R. J., 2007: <em><a href="https://doi.org/10.1137/1.9780898717839">Finite difference methods for ordinary and partial differential equations</a></em>. Society for Industrial; Applied Mathematics,.
+</div>
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
