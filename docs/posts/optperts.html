@@ -7,9 +7,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="榎本剛">
-<meta name="description" content="ループ回避して高速化する">
+<meta name="dcterms.date" content="2025-06-20">
+<meta name="description" content="円、線分、矢印を描く">
 
-<title>ベクトル化 – R中心生活</title>
+<title>最適摂動 – R中心生活</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -103,6 +104,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -154,16 +184,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">ベクトル化</h1>
+<h1 class="title">最適摂動</h1>
   <div class="quarto-categories">
-    <div class="quarto-category">performance</div>
-    <div class="quarto-category">table</div>
+    <div class="quarto-category">dynamics</div>
+    <div class="quarto-category">graphics</div>
   </div>
   </div>
 
 <div>
   <div class="description">
-    ループ回避して高速化する
+    円、線分、矢印を描く
   </div>
 </div>
 
@@ -177,6 +207,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           </div>
   </div>
     
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">June 20, 2025</p>
+    </div>
+  </div>
   
     
   </div>
@@ -186,159 +222,83 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>5つの乱数を2組生成して、分散と共分散を多数計算する。</p>
+<p>線型系</p>
+<p><span class="math display">\[
+\frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} = \mathbf{Au}
+\]</span></p>
+<p>を考える。 ここで <span class="math inline">\(\mathbf{u}(t)\)</span> は時刻 <span class="math inline">\(t\)</span> での状態、 <span class="math inline">\(\mathbf{A}\)</span> は線型化された力学演算子である。</p>
+<p>この演算子が <span class="math display">\[
+\mathbf{A} = \begin{bmatrix}-1 &amp; \cot\theta \\ 0 &amp; -2\end{bmatrix}
+\]</span></p>
+<p>で与えられているときの時間発展 <span class="math inline">\(\mathrm{d}\mathbf{u}/\mathrm{d}t\)</span> を矢印で描き、大きさ <span class="math inline">\(1\)</span> の摂動を円で、 <span class="math inline">\((\mathbf{A} + \mathbf{A}^\dagger)/2\)</span> の最大固有値に対応する単位固有ベクトル（数値的固有値の最大実部）と最も縮小する固有ベクトルを破線で描く。 順を追って示す。</p>
+<p>Base Rには円を函数はないので、区分的に直線を描く。</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">10000</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="dv">5</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>dof <span class="ot">&lt;-</span> m <span class="sc">-</span> <span class="dv">1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p><code>for</code>ループで書いたが、<code>n</code>が大きくなると遅くなる。</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">514</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>start <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n) {</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  x <span class="ot">&lt;-</span> <span class="fu">scale</span>(<span class="fu">rnorm</span>(m), <span class="at">scale =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  xx <span class="ot">&lt;-</span> <span class="fu">var</span>(x)</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  y <span class="ot">&lt;-</span> <span class="fu">scale</span>(<span class="fu">rnorm</span>(m), <span class="at">scale =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  yx <span class="ot">&lt;-</span> <span class="fu">cov</span>(x, y)</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>t.loop <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>() <span class="sc">-</span> start</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p><code>apply</code>を使ってループを回避したが、全く速くならず、むしろ遅くなる。 <code>n=1000000</code>のように大きくなると、<code>cov()</code>の計算が原因でメモリ（ヒープ）が不足する。 種は固定しているが、<code>rnorm()</code>の呼び出しの順番が異なるので同一の結果にはならない。</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">514</span>)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>start <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(m <span class="sc">*</span> n), <span class="at">nrow =</span> m) <span class="sc">|&gt;</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">apply</span>(<span class="dv">2</span>, scale, <span class="at">scale =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(m <span class="sc">*</span> n), <span class="at">nrow =</span> m) <span class="sc">|&gt;</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">apply</span>(<span class="dv">2</span>, scale, <span class="at">scale =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>Pb <span class="ot">&lt;-</span> <span class="fu">apply</span>(x, <span class="dv">2</span>, var)</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>yx <span class="ot">&lt;-</span> <span class="fu">diag</span>(<span class="fu">cov</span>(x, y)) </span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co">#yx &lt;- numeric(n)</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co">#for (i in 1:n) {</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co">#  yx[i] &lt;- cov(Xb[, i], y[, i])</span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co">#} </span></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>t.apply <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>() <span class="sc">-</span> start</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p><code>scale()</code>には<code>matrix</code>を与えることができ、列に対する正規化を行う。 分散は偏差平方平均、共分散は偏差の積の平均なので、要素積をして平均する。 <code>apply(x^2, 2, mean)</code>や<code>apply(x * y, 2, mean)</code>よりも<code>colMeans()</code>の方が速い。 平均は標本数で割るので、係数を調整する。</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">514</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>start <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">scale</span>(<span class="fu">matrix</span>(<span class="fu">rnorm</span>(m <span class="sc">*</span> n), <span class="at">nrow =</span> m), <span class="at">scale =</span> <span class="cn">FALSE</span>) </span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">scale</span>(<span class="fu">matrix</span>(<span class="fu">rnorm</span>(m <span class="sc">*</span> n), <span class="at">nrow =</span> m), <span class="at">scale =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>v <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(x<span class="sc">^</span><span class="dv">2</span>) <span class="sc">*</span> m <span class="sc">/</span> dof</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>yx <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(x <span class="sc">*</span> y) <span class="sc">*</span> m <span class="sc">/</span> dof</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>t.vec <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>() <span class="sc">-</span> start</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="cn">NULL</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), <span class="at">asp =</span> <span class="dv">1</span>,</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Circle"</span>, <span class="at">xlab =</span> <span class="st">"X"</span>, <span class="at">ylab =</span> <span class="st">"Y"</span>,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">cex.main =</span> <span class="fl">1.5</span>, <span class="at">cex.lab =</span> <span class="fl">1.5</span>, <span class="at">cex.axis =</span> <span class="fl">1.5</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>angle <span class="ot">&lt;-</span> pi <span class="sc">*</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">2</span> <span class="sc">*</span> pi, <span class="at">length.out =</span> <span class="dv">361</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">cos</span>(angle), <span class="fu">sin</span>(angle), <span class="at">col =</span> <span class="st">"black"</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<!-- preamble start -->
-
-    <script>
-
-      function styleCell_zo8b0eeity3l3cb01xr2(i, j, css_id) {
-          var table = document.getElementById("tinytable_zo8b0eeity3l3cb01xr2");
-          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
-          if (cell) {
-              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
-              cell.classList.add(css_id);
-          } else {
-              console.warn(`Cell at (${i}, ${j}) not found.`);
-          }
-      }
-      function insertSpanRow(i, colspan, content) {
-        var table = document.getElementById('tinytable_zo8b0eeity3l3cb01xr2');
-        var newRow = table.insertRow(i);
-        var newCell = newRow.insertCell(0);
-        newCell.setAttribute("colspan", colspan);
-        // newCell.innerText = content;
-        // this may be unsafe, but innerText does not interpret <br>
-        newCell.innerHTML = content;
-      }
-      function spanCell_zo8b0eeity3l3cb01xr2(i, j, rowspan, colspan) {
-        var table = document.getElementById("tinytable_zo8b0eeity3l3cb01xr2");
-        const targetRow = table.rows[i];
-        const targetCell = targetRow.cells[j];
-        for (let r = 0; r < rowspan; r++) {
-          // Only start deleting cells to the right for the first row (r == 0)
-          if (r === 0) {
-            // Delete cells to the right of the target cell in the first row
-            for (let c = colspan - 1; c > 0; c--) {
-              if (table.rows[i + r].cells[j + c]) {
-                table.rows[i + r].deleteCell(j + c);
-              }
-            }
-          }
-          // For rows below the first, delete starting from the target column
-          if (r > 0) {
-            for (let c = colspan - 1; c >= 0; c--) {
-              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
-                table.rows[i + r].deleteCell(j);
-              }
-            }
-          }
-        }
-        // Set rowspan and colspan of the target cell
-        targetCell.rowSpan = rowspan;
-        targetCell.colSpan = colspan;
-      }
-      // tinytable span after
-      window.addEventListener('load', function () {
-          var cellsToStyle = [
-            // tinytable style arrays after
-          { positions: [ { i: 3, j: 0 }, { i: 3, j: 1 }, { i: 3, j: 2 },  ], css_id: 'tinytable_css_2lw717j9295zh6mww3vp',}, 
-          { positions: [ { i: 0, j: 0 }, { i: 0, j: 1 }, { i: 0, j: 2 },  ], css_id: 'tinytable_css_3jp7wk9x32d8outts82t',}, 
-          ];
-
-          // Loop over the arrays to style the cells
-          cellsToStyle.forEach(function (group) {
-              group.positions.forEach(function (cell) {
-                  styleCell_zo8b0eeity3l3cb01xr2(cell.i, cell.j, group.css_id);
-              });
-          });
-      });
-    </script>
-
-    <style>
-      /* tinytable css entries after */
-      .table td.tinytable_css_2lw717j9295zh6mww3vp, .table th.tinytable_css_2lw717j9295zh6mww3vp { border-bottom: solid #d3d8dc 0.1em; }
-      .table td.tinytable_css_3jp7wk9x32d8outts82t, .table th.tinytable_css_3jp7wk9x32d8outts82t { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
-    </style>
-    <div class="container">
-      <table class="table table-borderless" id="tinytable_zo8b0eeity3l3cb01xr2" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
-        <thead>
-        
-              <tr>
-                <th scope="col">code</th>
-                <th scope="col">time</th>
-                <th scope="col">speedup</th>
-              </tr>
-        </thead>
-        
-        <tbody>
-                <tr>
-                  <td>loop</td>
-                  <td>0.5129</td>
-                  <td>1</td>
-                </tr>
-                <tr>
-                  <td>apply</td>
-                  <td>1.0379</td>
-                  <td>0.49</td>
-                </tr>
-                <tr>
-                  <td>vec</td>
-                  <td>0.0042</td>
-                  <td>123.15</td>
-                </tr>
-        </tbody>
-      </table>
-    </div>
-<!-- hack to avoid NA insertion in last line -->
+<div>
+<figure class="figure">
+<p><img src="optperts_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>最大瞬時成長率を持つ単位ノルム摂動は、 <span class="math inline">\((\mathbf{A} + \mathbf{A}^\dagger) / 2\)</span> を固有値解析することにより得られ、 対応する固有ベクトルは <span class="math inline">\(x\)</span> 軸と <span class="math inline">\(\alpha = \arctan(\sin\theta - 1) / \cos\theta\)</span> の角をなす。 これと直交する方向が最も縮小する。 <span class="math inline">\(\theta\rightarrow 0\)</span> の極限では <span class="math inline">\(\alpha = -\pi / 4\)</span> である。 <code>abline()</code> は簡単に直線を描くことができるが、範囲を区切ることはできないので、 <code>segments()</code> で始点と終点を指定して描画する。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="cn">NULL</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), <span class="at">asp =</span> <span class="dv">1</span>,</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Circle with diameters"</span>, <span class="at">xlab =</span> <span class="st">"X"</span>, <span class="at">ylab =</span> <span class="st">"Y"</span>,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">cex.main =</span> <span class="fl">1.5</span>, <span class="at">cex.lab =</span> <span class="fl">1.5</span>, <span class="at">cex.axis =</span> <span class="fl">1.5</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>angle <span class="ot">&lt;-</span> pi <span class="sc">*</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">2</span> <span class="sc">*</span> pi, <span class="at">length.out =</span> <span class="dv">361</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">cos</span>(angle), <span class="fu">sin</span>(angle), <span class="at">col =</span> <span class="st">"black"</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">segments</span>(<span class="fu">cos</span>(<span class="dv">3</span> <span class="sc">*</span> pi<span class="sc">/</span><span class="dv">4</span>), <span class="fu">sin</span>(<span class="dv">3</span> <span class="sc">*</span> pi<span class="sc">/</span><span class="dv">4</span>), <span class="fu">cos</span>(<span class="sc">-</span>pi<span class="sc">/</span><span class="dv">4</span>), <span class="fu">sin</span>(<span class="sc">-</span>pi<span class="sc">/</span><span class="dv">4</span>), <span class="at">col =</span> <span class="st">"red"</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">segments</span>(<span class="fu">cos</span>(pi<span class="sc">/</span><span class="dv">4</span>), <span class="fu">sin</span>(pi<span class="sc">/</span><span class="dv">4</span>), <span class="fu">cos</span>(<span class="dv">5</span> <span class="sc">*</span> pi<span class="sc">/</span><span class="dv">4</span>), <span class="fu">sin</span>(<span class="dv">5</span> <span class="sc">*</span> pi<span class="sc">/</span><span class="dv">4</span>), <span class="at">col =</span> <span class="st">"blue"</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="optperts_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><span class="math inline">\(\theta = \pi / 100\)</span> の場合ついて、 <span class="math inline">\(\mathrm{d}\mathbf{A}/\mathrm{d}t\)</span> を矢印で描く。 矢印を描くには、 <code>arrows()</code> を使う。 <code>segments()</code> 同様 <code>arrows()</code> も始点と終点を指定する。 Rでは、スカラーは要素が1のベクトルなので、一つの矢印を描くのも、たくさん描くのも同様にできる。 矢印の中心を格子点の中心に置くことにする。 終点と始点は、適切な拡大縮小率を掛けて　<span class="math inline">\(x,\,y\)</span> 方向の成分を座標にそれぞれ加減する。 座標の位置は、<code>expand.grid()</code> を使って <span class="math inline">\(x,\,y\)</span> 方向それぞれ一次元のベクトルから生成する。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">10</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">10</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>theta <span class="ot">&lt;-</span> pi <span class="sc">/</span> <span class="dv">100</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>alpha <span class="ot">&lt;-</span> <span class="fu">atan</span>((<span class="fu">sin</span>(theta) <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">/</span> <span class="fu">cos</span>(theta))</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>cot <span class="ot">&lt;-</span> <span class="cf">function</span>(theta) {</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cos</span>(theta) <span class="sc">/</span> <span class="fu">sin</span>(theta)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>amat <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">0</span>, <span class="sc">-</span><span class="fu">cot</span>(theta), <span class="sc">-</span><span class="dv">2</span>), <span class="at">nrow =</span> <span class="dv">2</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>xy <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(<span class="at">x =</span> x, <span class="at">y =</span> y)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> xy<span class="sc">$</span>x</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>Y <span class="ot">&lt;-</span> xy<span class="sc">$</span>y</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>uv <span class="ot">&lt;-</span> amat <span class="sc">%*%</span> <span class="fu">t</span>(<span class="fu">as.matrix</span>(xy))</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="fl">0.005</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>u <span class="ot">&lt;-</span> a <span class="sc">*</span> uv[<span class="dv">1</span>, ]</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>v <span class="ot">&lt;-</span> a <span class="sc">*</span> uv[<span class="dv">2</span>, ]</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="cn">NULL</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), <span class="at">asp =</span> <span class="dv">1</span>,</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Tendencies θ = π/100"</span>, <span class="at">xlab =</span> <span class="st">"X"</span>, <span class="at">ylab =</span> <span class="st">"Y"</span>,</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>     <span class="at">cex.main =</span> <span class="fl">1.5</span>, <span class="at">cex.lab =</span> <span class="fl">1.5</span>, <span class="at">cex.axis =</span> <span class="fl">1.5</span>)</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="fu">arrows</span>(X <span class="sc">-</span> u, Y <span class="sc">-</span> v, X <span class="sc">+</span> u, Y <span class="sc">+</span> v,</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="st">"gray"</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">length =</span> <span class="fl">0.1</span>, <span class="at">angle =</span> <span class="dv">10</span>)</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="fu">segments</span>(<span class="fu">cos</span>(pi<span class="sc">/</span><span class="dv">2</span> <span class="sc">-</span> alpha), <span class="fu">sin</span>(pi<span class="sc">/</span><span class="dv">2</span> <span class="sc">-</span> alpha), <span class="fu">cos</span>(alpha), <span class="fu">sin</span>(alpha), <span class="at">col =</span> <span class="st">"red"</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="fu">segments</span>(<span class="fu">cos</span>(<span class="sc">-</span>alpha), <span class="fu">sin</span>(<span class="sc">-</span>alpha), <span class="fu">cos</span>(pi <span class="sc">-</span> alpha), <span class="fu">sin</span>(pi <span class="sc">-</span> alpha), <span class="at">col =</span> <span class="st">"blue"</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>angle <span class="ot">&lt;-</span> pi <span class="sc">*</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">2</span> <span class="sc">*</span> pi, <span class="at">length.out =</span> <span class="dv">361</span>)</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">cos</span>(angle), <span class="fu">sin</span>(angle), <span class="at">col =</span> <span class="st">"black"</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="optperts_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 
