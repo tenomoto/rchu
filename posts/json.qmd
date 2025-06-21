@@ -66,10 +66,11 @@ plot(df$lon, df$lat, pch = 20, cex = 0.5, asp = 1)
 
 ```{r}
 #| fig-asp: 1
+#| warning: FALSE
 
 ncol <- 100
 cp <- hcl.colors(ncol, "Terrain2")
-alt.min <- min(df$alt)
+alt.min <- 0
 alt.max <- 3000
 alt.normalized <- (df$alt - alt.min) / (alt.max - alt.min)
 cl <- cp[ceiling(alt.normalized * (ncol - 1) + 1)]
@@ -83,9 +84,10 @@ plot(df$lon, df$lat,
      main = "AMeDAS station", xlab = "lon", ylab = "lat")
 
 par(mar = c(5, 0., 3, 4) + 0.1)
-image(x = 1, y = seq(alt.min, alt.max, length.out = ncol), z = matrix(1:ncol, 1, ncol),
+image(x = 1, y = 0:ncol, z = matrix(0:ncol, 1, ncol),
       col = cp, axes = FALSE, xlab = "", ylab = "")
 leg <- seq(0, alt.max, 500)
-axis(4, at = leg, las = 2, labels = leg, cex.axis = 1.5)
+axis(4, at = seq(0, ncol, length.out = length(leg)), las = 2, labels = leg, cex.axis = 1.5)
+mtext("altitude m", side = 3, line = 1.5, cex = 1.5)
 ```
 
