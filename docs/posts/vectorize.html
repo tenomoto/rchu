@@ -234,7 +234,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>t.vec <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>() <span class="sc">-</span> start</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p><a href="https://vincentarelbundock.github.io/tinytable/"><code>tinytable</code></a>で表にします。</p>
 <div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tinytable)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>code <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"loop"</span>, <span class="st">"apply"</span>, <span class="st">"vec"</span>)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>time <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">c</span>(t.loop, t.apply, t.vec))</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>speedup <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(t.loop) <span class="sc">/</span> time</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(code, time, speedup)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="fu">tt</span>(df, <span class="at">digits =</span> <span class="dv">2</span>, <span class="at">align =</span> <span class="st">"d"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <!-- preamble start -->
 
@@ -322,18 +330,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <tbody>
                 <tr>
                   <td>loop</td>
-                  <td>0.517</td>
+                  <td>0.5192</td>
                   <td>1</td>
                 </tr>
                 <tr>
                   <td>apply</td>
-                  <td>1.066</td>
+                  <td>1.0684</td>
                   <td>0.49</td>
                 </tr>
                 <tr>
                   <td>vec</td>
-                  <td>0.004</td>
-                  <td>128.12</td>
+                  <td>0.0041</td>
+                  <td>125.53</td>
                 </tr>
         </tbody>
       </table>

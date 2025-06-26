@@ -66,9 +66,10 @@ yx <- colMeans(x * y) * m / dof
 
 t.vec <- Sys.time() - start
 ```
-```{r}
-#| echo: false
 
+[`tinytable`](https://vincentarelbundock.github.io/tinytable/)で表にします。
+
+```{r}
 library(tinytable)
 
 code <- c("loop", "apply", "vec")
