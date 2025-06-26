@@ -9,7 +9,7 @@ categories:
 ---
 
 気象庁のアメダス地点はJSON形式で提供されている。
-RでJSONを扱うパッケージは複数あるが、ここでは[`json`](https://cran.r-project.org/web/packages/jsonlite/)を使う。
+RでJSONを扱うパッケージは複数あるが、ここでは[`jsonlite`](https://cran.r-project.org/web/packages/jsonlite/)を使う。
 
 `fromJSON()` にURLを文字列で渡すと、内容に応じてRのクラスが選択される。
 アメダス地点の場合は、リストが返ってくる。
