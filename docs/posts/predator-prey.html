@@ -431,7 +431,7 @@ L = \dots -\lambda_Y(Y - G(X, \dots)) - \lambda_Z(Z - F(X, Y, \dots)) + \dots
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fl">0.5</span> <span class="sc">*</span> (<span class="fu">sum</span>((xf<span class="sc">-</span> xo)<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> (yf <span class="sc">-</span> yo)<span class="sc">^</span><span class="dv">2</span>)) </span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>観測値を同化して順行モデルのパラメタと初期値を推定する。 同化するための準備として、制御変数、履歴を格納するリスト、コスト函数と勾配を定義する。 コスト函数と勾配の評価に必要な引数は、<code>optim()</code> の可変引数 <code>...</code> で受け取る。 履歴は、<code>&lt;&lt;-</code>を使ってグローバル変数に代入である。</p>
+<p>観測値を同化して順行モデルのパラメタと初期値を推定する。 同化するための準備として、制御変数、履歴を格納するリスト、コスト函数と勾配を定義する。 コスト函数と勾配の評価に必要な引数は、<code>optim()</code> の可変引数 <code>...</code> で受け取る。 履歴は、<code>&lt;&lt;-</code>を使ってグローバル変数に代入する。</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>)</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="dv">2</span></span>
