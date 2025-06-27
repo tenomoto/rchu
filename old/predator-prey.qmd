@@ -243,130 +243,132 @@ calc.cost <- function(xf, yf, xo, yo) {
 }
 ```
 
-観測値を同化して順行モデルのパラメタと初期値を推定する。
-同化するための準備として、制御変数、履歴を格納するリスト、コスト函数と勾配を定義する。
-コスト函数と勾配の評価に必要な引数は、`optim()` の可変引数 `...` で受け取る。
-履歴は、`<<-`を使ってグローバル変数に代入である。
+
+次に、観測値を同化して順行モデルのパラメタと初期値を推定する。
+最急降下法ではパラメタが改善しなかったので、[BFGS](https://tenomoto.github.io/rchu/posts/bfgs.html)法を用いる。
+後退線形探索は実装されているが、ステップ幅1でも問題なさそうだ。
 
 ```{r}
 a <- c(1, 0, 0, -1, 0, 0)
 x1 <- 2
 y1 <- 2
-par <- c(a, x1, y1)
+itermax <- 200
 tobs <- seq(2, nmax, by = 2)
-cntl <- list(maxit = 100, reltol = 1e-5)
+gtol <- 1e-5
+ctol <- 1e-10
+atol <- 1e-6
+ls <- TRUE
+stol <- 1e-5
 
-hist <- list(cost = numeric(0), gnorm = numeric(0), par = vector(length=0))
+chist <- rep(0, itermax)
+ghist <- rep(0, itermax)
+xhist <- matrix(rep(0, 8 * itermax), nrow = 8)
 
-fn <- function(par, dt, nmax, xo, yo, tobs) {
-  xyf <- forward(dt, par[1:6], par[7], par[8], nmax)
-  cost <- calc.cost(xyf$x[tobs], xyf$y[tobs], xo[tobs], yo[tobs])
-  cost
+alpha <- 1e-3
+par <- c(a, x1, y1)
+npar <- length(par)
+H <- alpha * diag(npar)
+xyf <- forward(dt, a, x1, y1, nmax)
+chist[1] <- calc.cost(xyf$x[tobs], xyf$y[tobs], xo[tobs], yo[tobs])
+gr <- adjoint(dt, a, xyf$x, xyf$y, xo, yo, tobs)
+s <- -drop(H %*% gr)
+new.par <- par + s
+xyf <- forward(dt, new.par[1:6], new.par[7], new.par[8], nmax)
+new.gr <- adjoint(dt, new.par[1:6], xyf$x, xyf$y, xo, yo, tobs)
+y <- new.gr - gr
+ys <- sum(y * s)
+H <- ys / sum(y * y) * diag(npar)
+
+ghist[1] <- sqrt(sum(gr^2))
+xhist[, 1] <- par
+par <- new.par
+gr <- new.gr
+
+for (iter in 2: itermax) {
+  xhist[, iter] <- c(par[1:6], par[7], par[8])
+  ghist[iter] <- sqrt(sum(gr^2))
+  if (ghist[iter] < gtol) {
+    cat("Converged at iteration", iter, "with cost", chist[iter], "\n")
+    break
+  }
+  chist[iter] <- calc.cost(xyf$x[tobs], xyf$y[tobs], xo[tobs], yo[tobs])
+  if (max(abs(s)) < stol && iter > 1) {
+    cat("Cost did not decrease at iteration", iter, "with cost", chist[iter], "\n")
+    break
+  }
+
+  # backtracking line search
+  alpha <- 1
+  if (ls) {
+    beta <- 0.5
+    c1 <- 1e-4
+    while (alpha > atol) {
+      p <- -drop(H %*% gr)
+      new.par <- par + alpha * p
+      s <- new.par - par
+      xyf <- forward(dt, new.par[1:6], new.par[7], new.par[8], nmax)
+      cost <- calc.cost(xyf$x[tobs], xyf$y[tobs], xo[tobs], yo[tobs])
+      if (cost <= chist[iter] + c1 * alpha * sum(gr * p)) {
+        break
+      }
+      alpha <- alpha * beta
+    }
+  }
+
+  p <- -drop(H %*% gr)
+  new.par <- par + alpha * p
+  s <- new.par - par
+  xyf <- forward(dt, new.par[1:6], new.par[7], new.par[8], nmax)
+  new.gr <- adjoint(dt, par[1:6], xyf$x, xyf$y, xo, yo, tobs)
+  y <- new.gr - gr
+  ys <- sum(y * s)
+  if (abs(ys) > ctol) {
+    rho <- 1 / ys
+    H <- (diag(length(par)) - rho * outer(s, y)) %*% H %*% (diag(length(par)) - rho * outer(y, s)) + rho * outer(s, s)
+  } else {
+    H <- ys / sum(y * y) * diag(length(par))
+    cat("iter", iter, "ys=", ys, "\n")
+  }
+ 
+  par <- new.par
+  gr <- new.gr
+#  cat("iter:", iter, "cost:", chist[iter], "|g|:", ghist[iter], "a:", par[1:6],
+#      "x1:", par[7], "y1:", par[8], "\n")
 }
-
-gr <- function(par, dt, nmax, xo, yo, tobs){
-  xyf <- forward(dt, par[1:6], par[7], par[8], nmax)
-  hist$par <<- rbind(hist$par, par)
-  cost <- calc.cost(xyf$x[tobs], xyf$y[tobs], xo[tobs], yo[tobs])
-  hist$cost <<- c(hist$cost, cost)
-  grad <- adjoint(dt, par[1:6], xyf$x, xyf$y, xo, yo, tobs)
-  hist$gnorm <<- c(hist$gnorm, sqrt(sum(grad^2)))
-  grad
-}
-```
-
-Rには組込の函数 `optim()`があるので、これを最適化に使う。
-BFGS法を用いると、初期値もパラメタもうまく推定できる。
-
-```{r}
-res <- optim(par, fn, gr, method = "BFGS", control = cntl, dt, nmax, xo, yo, tobs)
 ```
 
 ```{r}
-plot(log10(hist$cost), type = "l", lwd = 2,
-     main = "BFGS", xlab = "Iteration", ylab = "log10 J",
-     cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5)
+plot(log10(chist[1:iter]), type = "l", lwd = 2, xlab = "Iteration", ylab = "log10 J",
+     cex.lab = 1.5, cex.axis = 1.5)
 ```
 
 ```{r}
-plot(log10(hist$gnorm), type = "l", lwd = 2,
-     main = "BFGS", xlab = "Iteration", ylab = "log10|g|",
-     cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5)
+plot(log10(ghist[1:iter]), type = "l", lwd = 2, xlab = "Iteration", ylab = "log10|g|",
+     cex.lab = 1.5, cex.axis = 1.5)
 ```
 
 ```{r}
-plot(hist$par[, 7], ylim = c(0, 2), type = "l", lwd = 2, xlab = "Iteration", ylab = "Initial conditions",
-     main = "BFGS", cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5)
-lines(hist$par[, 8], lwd = 2, col = "red")
+plot(xhist[7, 1:iter], ylim = c(0, 2), type = "l", lwd = 2, xlab = "Iteration", ylab = "Initial conditions",
+     cex.lab = 1.5, cex.axis = 1.5)
+lines(xhist[8, 1:iter], lwd = 2, col = "red")
 legend("topright", legend = c("x1", "y1"),
        col = c("black", "red"), lwd = 2, cex = 1.5)
 ```
 
 ```{r}
-plot(hist$par[, 1], ylim = c(-10, 10), type = "l", lwd = 2,
-     main = "BFGS", xlab = "Iteration", ylab = "x parameters",
-     cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5)
-lines(hist$par[, 2], lwd = 2, col = "red")
-lines(hist$par[, 3], lwd = 2, col = "blue")
+plot(xhist[1, 1:iter], ylim = c(-10, 10), type = "l", lwd = 2, xlab = "Iteration", ylab = "x parameters",
+     cex.lab = 1.5, cex.axis = 1.5)
+lines(xhist[2, 1:iter], lwd = 2, col = "red")
+lines(xhist[3, 1:iter], lwd = 2, col = "blue")
 legend("topleft", legend = c("a1", "a2", "a3"),
-       col = c("black", "red", "blue"), lwd = 2, cex = 1)
+       col = c("black", "red", "blue"), lwd = 2, cex = 1.5)
 ```
 
 ```{r}
-plot(hist$par[, 4], ylim = c(-10, 10), type = "l", lwd = 2, 
-     main = "BFGS", xlab = "Iteration", ylab = "y parameters",
-     cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5)
-lines(hist$par[, 5], lwd = 2, col = "red")
-lines(hist$par[, 6], lwd = 2, col = "blue")
+plot(xhist[4, 1:iter], ylim = c(-10, 10), type = "l", lwd = 2, xlab = "Iteration", ylab = "y parameters",
+     cex.lab = 1.5, cex.axis = 1.5)
+lines(xhist[5, 1:iter], lwd = 2, col = "red")
+lines(xhist[6, 1:iter], lwd = 2, col = "blue")
 legend("topleft", legend = c("a4", "a5", "a6"),
-       col = c("black", "red", "blue"), lwd = 2, cex = 1)
-```
-
-共軛勾配法は収束が遅い。
-
-```{r}
-hist <- list(cost = numeric(0), gnorm = numeric(0), par = vector(length=0))
-
-cntl <- list(maxit = 200, reltol = 1e-5)
-res <- optim(par, fn, gr, method = "CG", control = cntl, dt, nmax, xo, yo, tobs)
-```
-```{r}
-plot(log10(hist$cost), type = "l", lwd = 2,
-     main = "CG", xlab = "Iteration", ylab = "log10 J",
-     cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5)
-```
-
-```{r}
-plot(log10(hist$gnorm), type = "l", lwd = 2,
-     main = "CG", xlab = "Iteration", ylab = "log10|g|",
-     cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5)
-```
-
-```{r}
-plot(hist$par[, 7], ylim = c(0, 2), type = "l", lwd = 2, 
-     main = "CG", xlab = "Iteration", ylab = "Initial conditions",
-     cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5)
-lines(hist$par[, 8], lwd = 2, col = "red")
-legend("topright", legend = c("x1", "y1"),
-       col = c("black", "red"), lwd = 2, cex = 1.5)
-```
-
-```{r}
-plot(hist$par[, 1], ylim = c(-10, 10), type = "l", lwd = 2,
-     main = "CG", xlab = "Iteration", ylab = "x parameters",
-     cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5)
-lines(hist$par[, 2], lwd = 2, col = "red")
-lines(hist$par[, 3], lwd = 2, col = "blue")
-legend("topleft", legend = c("a1", "a2", "a3"),
-       col = c("black", "red", "blue"), lwd = 2, cex = 1)
-```
-
-```{r}
-plot(hist$par[, 4], ylim = c(-10, 10), type = "l", lwd = 2,
-     main = "CG", xlab = "Iteration", ylab = "y parameters",
-     cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5)
-lines(hist$par[, 5], lwd = 2, col = "red")
-lines(hist$par[, 6], lwd = 2, col = "blue")
-legend("topleft", legend = c("a4", "a5", "a6"),
-       col = c("black", "red", "blue"), lwd = 2, cex = 1)
+       col = c("black", "red", "blue"), lwd = 2, cex = 1.5)
 ```
