@@ -87,8 +87,8 @@ plot(NULL, xlim = c(-1, 1), ylim = c(-1, 1), asp = 1,
      cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5)
 arrows(X - u, Y - v, X + u, Y + v,
        col = "gray", lwd = 2, length = 0.1, angle = 10)
-segments(cos(pi/2 - alpha), sin(pi/2 - alpha), cos(alpha), sin(alpha), col = "red", lwd = 2)
-segments(cos(-alpha), sin(-alpha), cos(pi - alpha), sin(pi - alpha), col = "blue", lwd = 2, lty = 2)
+segments(cos(alpha), sin(alpha), cos(alpha + pi), sin(alpha + pi), col = "red", lwd = 2)
+segments(cos(alpha + pi/2), sin(alpha + pi/2), cos(alpha + 3*pi/2), sin(alpha + 3*pi/2), col = "blue", lwd = 2, lty = 2)
 angle <- pi * seq(0, 2 * pi, length.out = 361)
 lines(cos(angle), sin(angle), col = "black", lwd = 2)
 ```
