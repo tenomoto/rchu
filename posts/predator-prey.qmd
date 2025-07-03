@@ -6,6 +6,7 @@ date: "2025/5/25"
 categories:
   - "model"
   - "DA"
+  - "optimization"
 ---
 
 捕食・被食関係にある2種の個体群の集団密度の時間変動を表す数理モデルは、Lotka--Volterraモデルとして知られている。

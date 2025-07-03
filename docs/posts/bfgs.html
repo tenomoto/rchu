@@ -255,7 +255,7 @@ f(\mathbf{x} + \mathbf{d}) \approx f(\mathbf{x}) +\mathbf{g}^\mathrm{T}\mathbf{d
 <p>ここで、<span class="math inline">\(k\)</span>は反復の番号、<span class="math inline">\(\mathbf{s}_k = \mathbf{x}_{k+1} - \mathbf{x}_k\)</span>、<span class="math inline">\(\mathbf{y}_k = \nabla f_{k+1} - \nabla f_k\)</span>、<span class="math inline">\(\mathbf{V}_k = \mathbf{I} - \rho_k\mathbf{y}_k \mathbf{s}_k^\mathrm{T}\)</span>及び<span class="math inline">\(\rho_k = 1/\mathbf{y}_k^\mathrm{T}\mathbf{s}_k\)</span>である。</p>
 <p>二次函数の仮定の下では、ステップ幅はおよそ1なので、ステップ幅計算は省略する。 BFGSには、ヘシアン逆行列を明示的に保存せずに、過去のステップと勾配から行列ベクトル積<span class="math inline">\(\mathbf{G}^{-1}\mathbf{g}\)</span>を更新するメモリ節約版もあるが、モデルの自由度が小さい場合を考えて、ここではヘシアン逆行列を明示的に保存する。</p>
 <p>BFGSはR標準の<code>{stat}</code>の<code>optim(method = "BFGS")</code>に実装されている。 その他いくつかのパッケージで使える（Taskview <a href="https://cran.r-project.org/web/views/Optimization.html">Optimization</a>参照）。</p>
-<p>パッケージの最適化手法は、最適化中のコスト函数や勾配ノルムの履歴を出力することができない。 ログを出力できるものもあるが、テキスト処理が必要になる。</p>
+<p>パッケージの最適化手法で、最適化中のコスト函数や勾配ノルムの履歴を出力するには、大域変数に記録する。 <a href="https://tenomoto.github.io/rchu/posts/predator-prey.html">捕食・被食モデル</a>に組込の <code>optim()</code> を使った例を示す。 ログを出力できるものもあるが、テキスト処理が必要になる。</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>bfgs <span class="ot">&lt;-</span> <span class="cf">function</span>(par, fn, gr, ..., control){</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  control <span class="ot">&lt;-</span> <span class="fu">modifyList</span>(<span class="fu">list</span>(</span>

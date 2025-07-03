@@ -36,7 +36,8 @@ BFGSには、ヘシアン逆行列を明示的に保存せずに、過去のス�
 BFGSはR標準の`{stat}`の`optim(method = "BFGS")`に実装されている。
 その他いくつかのパッケージで使える（Taskview [Optimization](https://cran.r-project.org/web/views/Optimization.html)参照）。
 
-パッケージの最適化手法は、最適化中のコスト函数や勾配ノルムの履歴を出力することができない。
+パッケージの最適化手法で、最適化中のコスト函数や勾配ノルムの履歴を出力するには、大域変数に記録する。
+[捕食・被食モデル](https://tenomoto.github.io/rchu/posts/predator-prey.html)に組込の `optim()` を使った例を示す。
 ログを出力できるものもあるが、テキスト処理が必要になる。
 
 ```{r}
