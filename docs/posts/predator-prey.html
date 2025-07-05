@@ -322,14 +322,16 @@ z_1 = f_1(\mathbf{x}),\;z_n = f_n(\mathbf{x}, z_1, \dots, z_{n-1}),\;n = 2, \dot
 <p><span id="eq-predator-prey-lagrange"><span class="math display">\[
 L(\mathbf{x}, \mathbf{z}, \lambda) = J(\mathbf{x}, z_1, \dots, z_{N}) - \lambda_1(z_1 - f_1(\mathbf{x})) - \sum_{n=2}^{N+1} \lambda_n (z_n - f_n(\mathbf{x}, z_1, \dots, z_{n-1}))
 \tag{2}\]</span></span></p>
-<p>ここで<span class="math inline">\(\boldsymbol\lambda = (\lambda_1,\dots,\lambda_{N+1})^\mathrm{T}\)</span>はLagrangeの未定乗数である。 Lagrange函数の鞍点は、<span class="math inline">\(\mathbf{x},\mathbf{z}, \boldsymbol\lambda\)</span>空間で<span class="math inline">\(L\)</span>の微分が同時に0に一点である。 鞍点では、<span class="math inline">\(\partial L/\partial \boldsymbol\lambda\)</span>から支配方程式(<a href="#eq-predator-prey-forward" class="quarto-xref">Equation&nbsp;1</a>) が得られる。</p>
+<p>ここで<span class="math inline">\(\boldsymbol\lambda = (\lambda_1,\dots,\lambda_{N+1})^\mathrm{T}\)</span>はLagrangeの未定乗数である。 Lagrange函数の鞍点は、<span class="math inline">\(\mathbf{x},\mathbf{z}, \boldsymbol\lambda\)</span>空間で<span class="math inline">\(L\)</span>の微分が同時に0になる一点である。 鞍点では、<span class="math inline">\(\partial L/\partial \boldsymbol\lambda\)</span>から支配方程式(<a href="#eq-predator-prey-forward" class="quarto-xref">Equation&nbsp;1</a>) が得られる。</p>
 <p>また、<span class="math inline">\(\partial L/\partial \mathbf{z}\)</span>から随伴方程式 <span id="eq-predator-prey-adjoint"><span class="math display">\[
 \lambda_{N+1} = \frac{\partial J}{\partial z_{N+1}},\;\lambda_n = \frac{\partial J}{\partial z_n} + \sum_{i=n+1}^{N+1} \frac{\partial f_i}{\partial z_n}\lambda_{i} ,\;n = N, \dots, 1
 \tag{3}\]</span></span> が得られる。</p>
 <p>さらに、<span class="math inline">\(\partial L/\partial \mathbf{x}\)</span>からコスト函数の入力に対する微分、</p>
-<p><span class="math display">\[
-\frac{\partial L}{\partial x_k} = \sum_{i=1}^{N+1} \frac{\partial f_i}{\partial x_k}\lambda_i\;k = 1, \dots, m
-\]</span> が得られる。</p>
+<p><span id="eq-predator-prey-gradient"><span class="math display">\[
+(\nabla_\mathbf{x}J)_k = (\nabla_\mathbf{x}L)_k = \frac{\partial L}{\partial x_k} = \sum_{i=1}^{N+1} \frac{\partial f_i}{\partial x_k}\lambda_i,\;k = 1, \dots, m
+\tag{4}\]</span></span> が得られる。</p>
+<p><a href="#eq-predator-prey-gradient" class="quarto-xref">Equation&nbsp;4</a>は、モデルの制御変数についての微分に<a href="#eq-predator-prey-adjoint" class="quarto-xref">Equation&nbsp;3</a> で計算された各ステップの未定乗数を掛けたものを全てのタイムステップで足し合わせれば、コスト函数の制御変数についての微分が求められることを示している。</p>
+<p><a href="#eq-predator-prey-gradient" class="quarto-xref">Equation&nbsp;4</a> は、ステップ <code>n+1</code> 以前についてモデルの状態変数についての微分に未定乗数を掛けたものを足し合わせて、ステップ <code>n</code> でのコスト函数の勾配を加えたものが、ステップ <code>n</code> での未定乗数であることを示している。</p>
 </section>
 <section id="随伴モデルの作成" class="level2">
 <h2 class="anchored" data-anchor-id="随伴モデルの作成">随伴モデルの作成</h2>
@@ -349,7 +351,7 @@ Z &amp;= F(X, Y, \dots)
 \]</span> となる。 この例におけるLagrange函数は次のように書ける。</p>
 <p><span id="eq-predator-prey-lagrange-code"><span class="math display">\[
 L = \dots -\lambda_Y(Y - G(X, \dots)) - \lambda_Z(Z - F(X, Y, \dots)) + \dots
-\tag{4}\]</span></span></p>
+\tag{5}\]</span></span></p>
 <p>(<a href="#eq-predator-prey-lagrange" class="quarto-xref">Equation&nbsp;2</a>)のように、未定乗数は状態<span class="math inline">\(z_k\)</span>の一つに対して一つずつ用意する。 Lagrange函数を明示的に作る必要はないが、コードに基づくLagrange函数とLagrange函数 (<a href="#eq-predator-prey-lagrange" class="quarto-xref">Equation&nbsp;2</a>) との対応をつけるために、その形を示した。</p>
 <p><span class="math inline">\(Y\)</span>についての微分が0となることから</p>
 <p><span class="math display">\[
@@ -358,14 +360,14 @@ L = \dots -\lambda_Y(Y - G(X, \dots)) - \lambda_Z(Z - F(X, Y, \dots)) + \dots
 <p><span class="math display">\[
 \lambda_Y = \lambda_Z\frac{\partial F}{\partial Y} + \dots
 \]</span> となる。 これらの項は、右辺に<span class="math inline">\(Y\)</span>が現れるところで計算し積算する必要がある。</p>
-<p><span class="math display">\[
+<p><span id="eq-predator-prey-lambda_Y"><span class="math display">\[
 \lambda_Y = \lambda_Y + \lambda_Z\frac{\partial F}{\partial Y}
-\]</span> Lagrangeの未定乗数は積算する前に、0に初期化する必要があることに注意。</p>
-<p>同様に<span class="math inline">\(X\)</span>に関する微分から</p>
-<p><span class="math display">\[
+\tag{6}\]</span></span> Lagrangeの未定乗数は積算する前に、0に初期化する必要があることに注意。</p>
+<p>同様に、コスト函数の<span class="math inline">\(X\)</span>に関する微分はLagrange函数 <span class="math inline">\(L\)</span> の <span class="math inline">\(X\)</span> についての偏微分であり、 これを <span class="math inline">\(X\)</span> についての未定乗数 <span class="math inline">\(\lambda_X\)</span> と呼ぶと</p>
+<p><span id="eq-predator-prey-lambda_X"><span class="math display">\[
 \lambda_X = \lambda_X + \lambda_Z\frac{\partial F}{\partial X}
-\]</span></p>
-<p>が得られる。</p>
+\tag{7}\]</span></span></p>
+<p>が得られる。 つまり、<strong>?@eq-predator-prey-lambda_Z</strong> は変数が従属変数である</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>forward <span class="ot">&lt;-</span> <span class="cf">function</span>(dt, a, x1, y1, nmax) {</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  x <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, nmax)</span>

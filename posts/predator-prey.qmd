@@ -99,7 +99,7 @@ L(\mathbf{x}, \mathbf{z}, \lambda) = J(\mathbf{x}, z_1, \dots, z_{N}) - \lambda_
 $$ {#eq-predator-prey-lagrange}
 
 ここで$\boldsymbol\lambda = (\lambda_1,\dots,\lambda_{N+1})^\mathrm{T}$はLagrangeの未定乗数である。
-Lagrange函数の鞍点は、$\mathbf{x},\mathbf{z}, \boldsymbol\lambda$空間で$L$の微分が同時に0に一点である。
+Lagrange函数の鞍点は、$\mathbf{x},\mathbf{z}, \boldsymbol\lambda$空間で$L$の微分が同時に0になる一点である。
 鞍点では、$\partial L/\partial \boldsymbol\lambda$から支配方程式(@eq-predator-prey-forward) が得られる。
 
 また、$\partial L/\partial \mathbf{z}$から随伴方程式
@@ -111,9 +111,13 @@ $$ {#eq-predator-prey-adjoint}
 さらに、$\partial L/\partial \mathbf{x}$からコスト函数の入力に対する微分、
 
 $$
-\frac{\partial L}{\partial x_k} = \sum_{i=1}^{N+1} \frac{\partial f_i}{\partial x_k}\lambda_i\;k = 1, \dots, m
-$$
+(\nabla_\mathbf{x}J)_k = (\nabla_\mathbf{x}L)_k = \frac{\partial L}{\partial x_k} = \sum_{i=1}^{N+1} \frac{\partial f_i}{\partial x_k}\lambda_i,\;k = 1, \dots, m
+$$ {#eq-predator-prey-gradient}
 が得られる。
+
+[@eq-predator-prey-gradient]は、モデルの制御変数についての微分に[@eq-predator-prey-adjoint] で計算された各ステップの未定乗数を掛けたものを全てのタイムステップで足し合わせれば、コスト函数の制御変数についての微分が求められることを示している。
+
+[@eq-predator-prey-gradient] は、ステップ `n+1` 以前についてモデルの状態変数についての微分に未定乗数を掛けたものを足し合わせて、ステップ `n` でのコスト函数の勾配を加えたものが、ステップ `n` での未定乗数であることを示している。
 
 ## 随伴モデルの作成
 
@@ -162,16 +166,18 @@ $$
 
 $$
 \lambda_Y = \lambda_Y + \lambda_Z\frac{\partial F}{\partial Y}
-$$
+$$ {#eq-predator-prey-lambda_Y}
 Lagrangeの未定乗数は積算する前に、0に初期化する必要があることに注意。
 
-同様に$X$に関する微分から
+同様に、コスト函数の$X$に関する微分はLagrange函数 $L$ の $X$ についての偏微分であり、
+これを $X$ についての未定乗数 $\lambda_X$ と呼ぶと
 
 $$
 \lambda_X = \lambda_X + \lambda_Z\frac{\partial F}{\partial X}
-$$
+$$ {#eq-predator-prey-lambda_X}
 
 が得られる。
+つまり、[@eq-predator-prey-lambda_Z] は変数が従属変数である 
 
 ```{r}
 forward <- function(dt, a, x1, y1, nmax) {
