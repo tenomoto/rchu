@@ -177,7 +177,9 @@ $$
 $$ {#eq-predator-prey-lambda_X}
 
 が得られる。
-つまり、[@eq-predator-prey-lambda_Z] は変数が従属変数である 
+つまり、[@eq-predator-prey-lambda_X] は変数が従属変数である [@eq-predator-prey-lambda_Y] と同型なので、同一の方法を適用すればよい。
+
+それでは、この方法で随伴モデルを作成する。
 
 ```{r}
 forward <- function(dt, a, x1, y1, nmax) {

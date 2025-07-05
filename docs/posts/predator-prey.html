@@ -367,7 +367,8 @@ L = \dots -\lambda_Y(Y - G(X, \dots)) - \lambda_Z(Z - F(X, Y, \dots)) + \dots
 <p><span id="eq-predator-prey-lambda_X"><span class="math display">\[
 \lambda_X = \lambda_X + \lambda_Z\frac{\partial F}{\partial X}
 \tag{7}\]</span></span></p>
-<p>が得られる。 つまり、<strong>?@eq-predator-prey-lambda_Z</strong> は変数が従属変数である</p>
+<p>が得られる。 つまり、<a href="#eq-predator-prey-lambda_X" class="quarto-xref">Equation&nbsp;7</a> は変数が従属変数である <a href="#eq-predator-prey-lambda_Y" class="quarto-xref">Equation&nbsp;6</a> と同型なので、同一の方法を適用すればよい。</p>
+<p>それでは、この方法で随伴モデルを作成する。</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>forward <span class="ot">&lt;-</span> <span class="cf">function</span>(dt, a, x1, y1, nmax) {</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  x <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, nmax)</span>
