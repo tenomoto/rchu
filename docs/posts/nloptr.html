@@ -242,7 +242,7 @@ window.Quarto = {
 <span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>x0 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">1.2</span>, <span class="dv">1</span>)</span>
 <span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>opts <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="st">"algorithm"</span> <span class="ot">=</span> <span class="st">"NLOPT_LD_LBFGS"</span>, <span class="st">"xtol_rel"</span> <span class="ot">=</span> <span class="fl">1.0</span><span class="dv">-8</span>)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>opts <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="st">"algorithm"</span> <span class="ot">=</span> <span class="st">"NLOPT_LD_LBFGS"</span>, <span class="st">"xtol_rel"</span> <span class="ot">=</span> <span class="fl">1.0e-8</span>)</span>
 <span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">nloptr</span>(<span class="at">x0 =</span> x0,</span>
 <span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>              <span class="at">eval_f =</span> eval_f,</span>
@@ -261,7 +261,7 @@ Minimization using NLopt version 2.10.0
 NLopt solver status: 1 ( NLOPT_SUCCESS: Generic success return value. )
 
 Number of Iterations....: 56 
-Termination conditions:  xtol_rel: -7 
+Termination conditions:  xtol_rel: 1e-08 
 Number of inequality constraints:  0 
 Number of equality constraints:    0 
 Optimal value of objective function:  7.35727226897802e-23 
@@ -293,7 +293,7 @@ Minimization using NLopt version 2.10.0
 NLopt solver status: 1 ( NLOPT_SUCCESS: Generic success return value. )
 
 Number of Iterations....: 56 
-Termination conditions:  xtol_rel: -7 
+Termination conditions:  xtol_rel: 1e-08 
 Number of inequality constraints:  0 
 Number of equality constraints:    0 
 Optimal value of objective function:  7.35727226897802e-23 

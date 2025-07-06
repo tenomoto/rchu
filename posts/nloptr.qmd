@@ -50,7 +50,7 @@ eval_grad_f <- function(x) {
 
 x0 <- c(-1.2, 1)
 
-opts <- list("algorithm" = "NLOPT_LD_LBFGS", "xtol_rel" = 1.0-8)
+opts <- list("algorithm" = "NLOPT_LD_LBFGS", "xtol_rel" = 1.0e-8)
 
 res <- nloptr(x0 = x0,
               eval_f = eval_f,
