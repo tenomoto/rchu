@@ -288,24 +288,25 @@ Rには組込の函数 `optim()`があるので、これを最適化に使う。
 BFGS法を用いると、初期値もパラメタもうまく推定できる。
 
 ```{r}
-res <- optim(par, fn, gr, method = "BFGS", control = cntl, dt, nmax, xo, yo, tobs)
+method <- "BFGS"
+res <- optim(par, fn, gr, method = method, control = cntl, dt, nmax, xo, yo, tobs)
 ```
 
 ```{r}
 plot(log10(hist$cost), type = "l", lwd = 2,
-     main = "BFGS", xlab = "Iteration", ylab = "log10 J",
+     main = paste("cost", method), xlab = "Iteration", ylab = "log10 J",
      cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5)
 ```
 
 ```{r}
 plot(log10(hist$gnorm), type = "l", lwd = 2,
-     main = "BFGS", xlab = "Iteration", ylab = "log10|g|",
+     main = paste("gnorm", method), xlab = "Iteration", ylab = "log10|g|",
      cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5)
 ```
 
 ```{r}
 plot(hist$par[, 7], ylim = c(0, 2), type = "l", lwd = 2, xlab = "Iteration", ylab = "Initial conditions",
-     main = "BFGS", cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5)
+     main = paste("init", method), cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5)
 lines(hist$par[, 8], lwd = 2, col = "red")
 legend("topright", legend = c("x1", "y1"),
        col = c("black", "red"), lwd = 2, cex = 1.5)
@@ -313,7 +314,7 @@ legend("topright", legend = c("x1", "y1"),
 
 ```{r}
 plot(hist$par[, 1], ylim = c(-10, 10), type = "l", lwd = 2,
-     main = "BFGS", xlab = "Iteration", ylab = "x parameters",
+     main = paste("prey parameters", method), xlab = "Iteration", ylab = "x parameters",
      cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5)
 lines(hist$par[, 2], lwd = 2, col = "red")
 lines(hist$par[, 3], lwd = 2, col = "blue")
@@ -323,7 +324,7 @@ legend("topleft", legend = c("a1", "a2", "a3"),
 
 ```{r}
 plot(hist$par[, 4], ylim = c(-10, 10), type = "l", lwd = 2, 
-     main = "BFGS", xlab = "Iteration", ylab = "y parameters",
+     main = paste("predator parameters", method), xlab = "Iteration", ylab = "y parameters",
      cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5)
 lines(hist$par[, 5], lwd = 2, col = "red")
 lines(hist$par[, 6], lwd = 2, col = "blue")
@@ -337,23 +338,24 @@ legend("topleft", legend = c("a4", "a5", "a6"),
 hist <- list(cost = numeric(0), gnorm = numeric(0), par = vector(length=0))
 
 cntl <- list(maxit = 200, reltol = 1e-5)
-res <- optim(par, fn, gr, method = "CG", control = cntl, dt, nmax, xo, yo, tobs)
+method <- "CG"
+res <- optim(par, fn, gr, method = method, control = cntl, dt, nmax, xo, yo, tobs)
 ```
 ```{r}
 plot(log10(hist$cost), type = "l", lwd = 2,
-     main = "CG", xlab = "Iteration", ylab = "log10 J",
+     main = paste("cost", method), xlab = "Iteration", ylab = "log10 J",
      cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5)
 ```
 
 ```{r}
 plot(log10(hist$gnorm), type = "l", lwd = 2,
-     main = "CG", xlab = "Iteration", ylab = "log10|g|",
+     main = paste("gnorm", method), xlab = "Iteration", ylab = "log10|g|",
      cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5)
 ```
 
 ```{r}
 plot(hist$par[, 7], ylim = c(0, 2), type = "l", lwd = 2, 
-     main = "CG", xlab = "Iteration", ylab = "Initial conditions",
+     main = paste("init", method), xlab = "Iteration", ylab = "Initial conditions",
      cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5)
 lines(hist$par[, 8], lwd = 2, col = "red")
 legend("topright", legend = c("x1", "y1"),
@@ -362,7 +364,7 @@ legend("topright", legend = c("x1", "y1"),
 
 ```{r}
 plot(hist$par[, 1], ylim = c(-10, 10), type = "l", lwd = 2,
-     main = "CG", xlab = "Iteration", ylab = "x parameters",
+     main = paste("prey parameters", method), xlab = "Iteration", ylab = "x parameters",
      cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5)
 lines(hist$par[, 2], lwd = 2, col = "red")
 lines(hist$par[, 3], lwd = 2, col = "blue")
@@ -372,7 +374,7 @@ legend("topleft", legend = c("a1", "a2", "a3"),
 
 ```{r}
 plot(hist$par[, 4], ylim = c(-10, 10), type = "l", lwd = 2,
-     main = "CG", xlab = "Iteration", ylab = "y parameters",
+     main = paste("predator parameters", method), xlab = "Iteration", ylab = "y parameters",
      cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5)
 lines(hist$par[, 5], lwd = 2, col = "red")
 lines(hist$par[, 6], lwd = 2, col = "blue")
