@@ -2,6 +2,7 @@
 title: ベクトル化
 description: ループ回避して高速化する
 author: 榎本剛
+date: "2025/4/18"
 categories:
   - performance
   - table

@@ -2,6 +2,7 @@
 title: PowerShellでR
 description: PowerShellのエイリアスを削除する
 author: 榎本剛
+date: "2024/11/4"
 categories:
   - windows
 ---

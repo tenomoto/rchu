@@ -2,6 +2,7 @@
 title: ヘルプ
 description: 函数や機能のヘルプを参照する
 author: 榎本剛
+date: "2024/11/4"
 categories:
   - basics
 ---

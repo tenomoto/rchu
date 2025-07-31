@@ -2,6 +2,7 @@
 title: ベクトル
 description: ベクトルの操作
 author: 榎本剛
+date: "2025/1/3"
 categories:
   - basics
 ---

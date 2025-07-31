@@ -2,6 +2,7 @@
 title: 制約付き数値最適化
 description: nloptr
 author: 榎本剛
+date: "2025/6/30"
 categories:
   - optimization
   - package
