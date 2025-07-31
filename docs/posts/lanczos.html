@@ -255,9 +255,9 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="lanczos反復">Lanczos反復</h2>
 <p><span class="math inline">\(n\times n\)</span> 行列 <span class="math inline">\(\mathbf{A}\)</span> を三重対角化する。</p>
 <p><span class="math display">\[
-\mathbf{T} = \mathbf{Q}^\dagger\mathbf{A}\mathbf{Q}
+\mathbf{T}_k = \mathbf{Q}_k^\dagger\mathbf{A}\mathbf{Q}_k
 \]</span></p>
-<p>ここで、 $ は<span class="math inline">\(\boldsymbol\alpha = [\alpha_1,\,\alpha_2,\,\dots,\,\alpha_k]\)</span>を対角成分、 <span class="math inline">\(\boldsymbol\beta = [\beta_1,\,\beta_2,\,\dots,\,\beta_k]\)</span> 副対角成分とする <span class="math inline">\(k \times k\)</span> の $ 三重対角行列、 <span class="math inline">\(\mathbf{Q} = [\mathbf{q}_1, \mathbf{q}_2, \dots, \mathbf{q}_k]\)</span> は列ベクトル <span class="math inline">\(\mathbf{q}_i\)</span> を並べた <span class="math inline">\(n\times k\)</span> 行列である。</p>
+<p>ここで、 _k$ は<span class="math inline">\(\boldsymbol\alpha = [\alpha_1,\,\alpha_2,\,\dots,\,\alpha_k]\)</span>を対角成分、 <span class="math inline">\(\boldsymbol\beta = [\beta_1,\,\beta_2,\,\dots,\,\beta_k]\)</span> 副対角成分とする <span class="math inline">\(k \times k\)</span> の $ 三重対角行列、 <span class="math inline">\(\mathbf{Q}_k = [\mathbf{q}_1, \mathbf{q}_2, \dots, \mathbf{q}_k]\)</span> は列ベクトル <span class="math inline">\(\mathbf{q}_i\)</span> を並べた <span class="math inline">\(n\times k\)</span> 行列である。</p>
 <p>まず、<span class="math inline">\(\mathbf{q}_0 = 0\)</span>とし、<span class="math inline">\(\mathbf{q}_1\)</span>を乱数で初期化する。</p>
 <p><span class="math inline">\(j = 1,\,2\,\dots,k\)</span> に対して、以下のLanczos反復を行う。</p>
 <ol type="1">
@@ -300,8 +300,8 @@ window.Quarto = {
 </section>
 <section id="特異値分解" class="level2">
 <h2 class="anchored" data-anchor-id="特異値分解">特異値分解</h2>
-<p>三重対角行列を固有値分解することにより、固有値・固有ベクトルを得る。</p>
-<p><span class="math inline">\(m\times n\)</span> の行列 <span class="math inline">\(\mathbf{A}\)</span> の特異値分解は、<span class="math inline">\(\mathbf{A}^\dagger\mathbf{A}\)</span>の固有値分解から求めることができる。</p>
+<p>三重対角行列 <span class="math inline">\(\mathbf{T}_k\)</span> を固有値分解することにより、固有値と固有ベクトル <span class="math inline">\(\mathbf{S}_k\)</span> を得る。 <span class="math inline">\(\mathbf{T}_k\)</span> の固有値は<span class="math inline">\(\mathbf{A}\)</span> の固有値の近似であり、 <span class="math inline">\(\mathbf{A}\)</span> の固有ベクトルは <span class="math inline">\(\mathbf{Q}_k\mathbf{S}_k\)</span> で近似される。</p>
+<p><span class="math inline">\(m\times n\)</span> の行列 <span class="math inline">\(\mathbf{A}\)</span> の特異値分解は、<span class="math inline">\(\mathbf{A}^\dagger\mathbf{A}\)</span> の固有値分解から求めることができる。</p>
 <p>右特異ベクトルも同時に求めるには、<span class="math inline">\((m+n)\times (m+n)\)</span> 行列</p>
 <p><span class="math display">\[
 \mathbf{H} = \begin{bmatrix}
@@ -309,7 +309,7 @@ window.Quarto = {
 \mathbf{A}^\dagger &amp; \mathbf{0}_{n \times n}
 \end{bmatrix}
 \]</span></p>
-<p>の固有値分解を行えばよい。</p>
+<p>の固有値分解を行えばよい。 <span class="math inline">\(\mathbf{Y}_k = \sqrt{2}\mathbf{Q}_k\mathbf{S}_k\)</span> の最初の <span class="math inline">\(m\)</span> 行が左特異ベクトル、残り <span class="math inline">\(n\)</span> 行が転置されていない右特異ベクトルを表す。</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
