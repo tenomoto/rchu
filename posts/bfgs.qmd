@@ -14,7 +14,7 @@ categories:
 函数$f(\mathbf{x})$が最小になるような$\mathbf{x}$を求める問題を考える。
 $\mathbf{x}$は制御変数と呼ばれ、初期値を推定するデータ同化では自由度$n$の場を表す。
 $\mathbf{x}$の近傍で$f(\mathbf{x})$が二次に近いと仮定し、
-$\mathbf{x}$から$\mathbf{d}$だけ変化させた$f(\mathbf{x}+ \mathbf{d})をテーラー展開で二次まで近似する。
+$\mathbf{x}$から$\mathbf{d}$だけ変化させた$f(\mathbf{x}+ \mathbf{d})$をテーラー展開で二次まで近似する。
 
 $$
 f(\mathbf{x} + \mathbf{d}) \approx f(\mathbf{x}) +\mathbf{g}^\mathrm{T}\mathbf{d} + \mathbf{d}^\mathrm{T}\mathbf{G}\mathbf{d}
@@ -22,7 +22,7 @@ $$
 
 ここで、$\mathbf{g} = \nabla f(\mathbf{x})$は勾配、$\mathbf{G} = \nabla^2 f(\mathbf{x})$はヘシアンである。
 
-代表的な準ニュートン法であるBFGS法 [@Broyden:1970;@Fletcher:1970:@Goldfarb:1970;@Shanno:1970]は、へシアン逆行列を明示的に計算することなく、曲率についての情報を函数値や勾配から構築し、反復の中で以下のBFGS公式に基づいて更新する [@Nocedal-Wright:2006]。
+代表的な準ニュートン法であるBFGS法 [@Broyden:1970;@Fletcher:1970;@Goldfarb:1970;@Shanno:1970]は、へシアン逆行列$\mathbf{H}_k$を明示的に計算することなく、曲率についての情報を函数値や勾配から構築し、反復の中で以下のBFGS公式に基づいて更新する [@Nocedal-Wright:2006]。
 
 $$
 \mathbf{H}_{k+1} = \mathbf{V}_k^\mathrm{T}\mathbf{H}_k\mathbf{V}_k + \rho_k\mathbf{s}_k\mathbf{s}_k^\mathrm{T}
@@ -30,29 +30,27 @@ $$ {#eq-opt-bfgs}
 
 ここで、$k$は反復の番号、$\mathbf{s}_k = \mathbf{x}_{k+1} - \mathbf{x}_k$、$\mathbf{y}_k = \nabla f_{k+1} - \nabla f_k$、$\mathbf{V}_k = \mathbf{I} - \rho_k\mathbf{y}_k \mathbf{s}_k^\mathrm{T}$及び$\rho_k = 1/\mathbf{y}_k^\mathrm{T}\mathbf{s}_k$である。
 
-二次函数の仮定の下では、ステップ幅はおよそ1なので、ステップ幅計算は省略する。
-BFGSには、ヘシアン逆行列を明示的に保存せずに、過去のステップと勾配から行列ベクトル積$\mathbf{G}^{-1}\mathbf{g}$を更新するメモリ節約版もあるが、モデルの自由度が小さい場合を考えて、ここではヘシアン逆行列を明示的に保存する。
+二次函数の仮定の下では、ステップ幅はおよそ1なので、ステップ幅計算は省略することもできる。
+BFGSには、ヘシアン逆行列を明示的に保存せずに、過去のステップと勾配から行列ベクトル積$\mathbf{G}^{-1}\mathbf{g}$を更新するメモリ節約版もあるが、ここではモデルの自由度が小さい場合を考え、ヘシアン逆行列を明示的に保存する。
 
 BFGSはR標準の`{stat}`の`optim(method = "BFGS")`に実装されている。
 その他いくつかのパッケージで使える（Taskview [Optimization](https://cran.r-project.org/web/views/Optimization.html)参照）。
+パッケージの最適化手法で、最適化中のコスト函数や勾配ノルムの履歴を出力するには、ログをテキスト処理するか、大域変数に記録する。
+[捕食・被食モデル](https://tenomoto.github.io/rchu/posts/predator-prey.html)では、組込の `optim()` を使い、後者の方法で履歴を保存した例を示している。
 
-パッケージの最適化手法で、最適化中のコスト函数や勾配ノルムの履歴を出力するには、大域変数に記録する。
-[捕食・被食モデル](https://tenomoto.github.io/rchu/posts/predator-prey.html)に組込の `optim()` を使った例を示す。
-ログを出力できるものもあるが、テキスト処理が必要になる。
+ここでは、BFGS更新[@eq-opt-bfgs]を実装したコードを示す。
 
 ```{r}
 #| file: ../R/bfgs.R
 ```
 
-このコードでは、勾配からステップ幅を計算し、
+$\mathbf{s}_k$と$\mathbf{y}_k$は二つの反復回の差なので、$k=0$では勾配からステップ幅を計算する。
+ヘシアン逆行列$\mathbf{H}$は次のように初期化する。
 
 $$
 \mathbf{H} = \frac{\mathbf{s}^\mathrm{T}\mathbf{y}}{\mathbf{y}^\mathrm{T}\mathbf{y}}\mathbf{I}
 $$
-を初期のヘシアン逆行列とする。
-ここで、$\alpha = 1/\sum_j|g_j|\,j = 1, \dots, n$、$\mathbf{s} = -\alpha\mathbf{g}_0$、$\mathbf{y} = \mathbf{g}(\mathbf{x}_0-\alpha\mathbf{g}_0) - \mathbf{g}(\mathbf{x}_0)$
-
-曲率条件$\mathbf{s}^\mathrm{T}\mathbf{y} > 0$を満たす必要があるので、一定値を下回った場合はヘシアン逆行列を上式で初期化する。
+ここで、$\alpha = 1/\sum_j|g_j|,\,j = 1, \dots, n$、$\mathbf{s} = -\alpha\mathbf{g}_0$、$\mathbf{y} = \mathbf{g}(\mathbf{x}_0-\alpha\mathbf{g}_0) - \mathbf{g}(\mathbf{x}_0)$である。
 
 Rosenbrock函数
 

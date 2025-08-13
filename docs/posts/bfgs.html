@@ -243,19 +243,19 @@ window.Quarto = {
 
 
 <p>数値最適化はデータ同化や機械学習などで、データから最適解を求めるための数値手法である。</p>
-<p>函数<span class="math inline">\(f(\mathbf{x})\)</span>が最小になるような<span class="math inline">\(\mathbf{x}\)</span>を求める問題を考える。 <span class="math inline">\(\mathbf{x}\)</span>は制御変数と呼ばれ、初期値を推定するデータ同化では自由度<span class="math inline">\(n\)</span>の場を表す。 <span class="math inline">\(\mathbf{x}\)</span>の近傍で<span class="math inline">\(f(\mathbf{x})\)</span>が二次に近いと仮定し、 <span class="math inline">\(\mathbf{x}\)</span>から<span class="math inline">\(\mathbf{d}\)</span>だけ変化させた$f(+ )をテーラー展開で二次まで近似する。</p>
+<p>函数<span class="math inline">\(f(\mathbf{x})\)</span>が最小になるような<span class="math inline">\(\mathbf{x}\)</span>を求める問題を考える。 <span class="math inline">\(\mathbf{x}\)</span>は制御変数と呼ばれ、初期値を推定するデータ同化では自由度<span class="math inline">\(n\)</span>の場を表す。 <span class="math inline">\(\mathbf{x}\)</span>の近傍で<span class="math inline">\(f(\mathbf{x})\)</span>が二次に近いと仮定し、 <span class="math inline">\(\mathbf{x}\)</span>から<span class="math inline">\(\mathbf{d}\)</span>だけ変化させた<span class="math inline">\(f(\mathbf{x}+ \mathbf{d})\)</span>をテーラー展開で二次まで近似する。</p>
 <p><span class="math display">\[
 f(\mathbf{x} + \mathbf{d}) \approx f(\mathbf{x}) +\mathbf{g}^\mathrm{T}\mathbf{d} + \mathbf{d}^\mathrm{T}\mathbf{G}\mathbf{d}
 \]</span></p>
 <p>ここで、<span class="math inline">\(\mathbf{g} = \nabla f(\mathbf{x})\)</span>は勾配、<span class="math inline">\(\mathbf{G} = \nabla^2 f(\mathbf{x})\)</span>はヘシアンである。</p>
-<p>代表的な準ニュートン法であるBFGS法 <span class="citation" data-cites="Broyden:1970 Fletcher:1970 Shanno:1970">Goldfarb (<a href="#ref-Goldfarb:1970" role="doc-biblioref">1970</a>)</span>は、へシアン逆行列を明示的に計算することなく、曲率についての情報を函数値や勾配から構築し、反復の中で以下のBFGS公式に基づいて更新する <span class="citation" data-cites="Nocedal-Wright:2006">(<a href="#ref-Nocedal-Wright:2006" role="doc-biblioref">Nocedal and Stephen J. Wright 2006</a>)</span>。</p>
+<p>代表的な準ニュートン法であるBFGS法 <span class="citation" data-cites="Broyden:1970 Fletcher:1970 Goldfarb:1970 Shanno:1970">(<a href="#ref-Broyden:1970" role="doc-biblioref">Broyden 1970</a>; <a href="#ref-Fletcher:1970" role="doc-biblioref">Fletcher 1970</a>; <a href="#ref-Goldfarb:1970" role="doc-biblioref">Goldfarb 1970</a>; <a href="#ref-Shanno:1970" role="doc-biblioref">Shanno 1970</a>)</span>は、へシアン逆行列<span class="math inline">\(\mathbf{H}_k\)</span>を明示的に計算することなく、曲率についての情報を函数値や勾配から構築し、反復の中で以下のBFGS公式に基づいて更新する <span class="citation" data-cites="Nocedal-Wright:2006">(<a href="#ref-Nocedal-Wright:2006" role="doc-biblioref">Nocedal and Stephen J. Wright 2006</a>)</span>。</p>
 <p><span id="eq-opt-bfgs"><span class="math display">\[
 \mathbf{H}_{k+1} = \mathbf{V}_k^\mathrm{T}\mathbf{H}_k\mathbf{V}_k + \rho_k\mathbf{s}_k\mathbf{s}_k^\mathrm{T}
 \tag{1}\]</span></span></p>
 <p>ここで、<span class="math inline">\(k\)</span>は反復の番号、<span class="math inline">\(\mathbf{s}_k = \mathbf{x}_{k+1} - \mathbf{x}_k\)</span>、<span class="math inline">\(\mathbf{y}_k = \nabla f_{k+1} - \nabla f_k\)</span>、<span class="math inline">\(\mathbf{V}_k = \mathbf{I} - \rho_k\mathbf{y}_k \mathbf{s}_k^\mathrm{T}\)</span>及び<span class="math inline">\(\rho_k = 1/\mathbf{y}_k^\mathrm{T}\mathbf{s}_k\)</span>である。</p>
-<p>二次函数の仮定の下では、ステップ幅はおよそ1なので、ステップ幅計算は省略する。 BFGSには、ヘシアン逆行列を明示的に保存せずに、過去のステップと勾配から行列ベクトル積<span class="math inline">\(\mathbf{G}^{-1}\mathbf{g}\)</span>を更新するメモリ節約版もあるが、モデルの自由度が小さい場合を考えて、ここではヘシアン逆行列を明示的に保存する。</p>
-<p>BFGSはR標準の<code>{stat}</code>の<code>optim(method = "BFGS")</code>に実装されている。 その他いくつかのパッケージで使える（Taskview <a href="https://cran.r-project.org/web/views/Optimization.html">Optimization</a>参照）。</p>
-<p>パッケージの最適化手法で、最適化中のコスト函数や勾配ノルムの履歴を出力するには、大域変数に記録する。 <a href="https://tenomoto.github.io/rchu/posts/predator-prey.html">捕食・被食モデル</a>に組込の <code>optim()</code> を使った例を示す。 ログを出力できるものもあるが、テキスト処理が必要になる。</p>
+<p>二次函数の仮定の下では、ステップ幅はおよそ1なので、ステップ幅計算は省略することもできる。 BFGSには、ヘシアン逆行列を明示的に保存せずに、過去のステップと勾配から行列ベクトル積<span class="math inline">\(\mathbf{G}^{-1}\mathbf{g}\)</span>を更新するメモリ節約版もあるが、ここではモデルの自由度が小さい場合を考え、ヘシアン逆行列を明示的に保存する。</p>
+<p>BFGSはR標準の<code>{stat}</code>の<code>optim(method = "BFGS")</code>に実装されている。 その他いくつかのパッケージで使える（Taskview <a href="https://cran.r-project.org/web/views/Optimization.html">Optimization</a>参照）。 パッケージの最適化手法で、最適化中のコスト函数や勾配ノルムの履歴を出力するには、ログをテキスト処理するか、大域変数に記録する。 <a href="https://tenomoto.github.io/rchu/posts/predator-prey.html">捕食・被食モデル</a>では、組込の <code>optim()</code> を使い、後者の方法で履歴を保存した例を示している。</p>
+<p>ここでは、BFGS更新<a href="#eq-opt-bfgs" class="quarto-xref">Equation&nbsp;1</a>を実装したコードを示す。</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>bfgs <span class="ot">&lt;-</span> <span class="cf">function</span>(par, fn, gr, ..., control){</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  control <span class="ot">&lt;-</span> <span class="fu">modifyList</span>(<span class="fu">list</span>(</span>
@@ -320,11 +320,10 @@ f(\mathbf{x} + \mathbf{d}) \approx f(\mathbf{x}) +\mathbf{g}^\mathrm{T}\mathbf{d
 <span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a>       <span class="at">cost =</span> cost[<span class="dv">1</span><span class="sc">:</span>iter], <span class="at">gnorm =</span> gnorm.hist[<span class="dv">1</span><span class="sc">:</span>iter])</span>
 <span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>このコードでは、勾配からステップ幅を計算し、</p>
+<p><span class="math inline">\(\mathbf{s}_k\)</span>と<span class="math inline">\(\mathbf{y}_k\)</span>は二つの反復回の差なので、<span class="math inline">\(k=0\)</span>では勾配からステップ幅を計算する。 ヘシアン逆行列<span class="math inline">\(\mathbf{H}\)</span>は次のように初期化する。</p>
 <p><span class="math display">\[
 \mathbf{H} = \frac{\mathbf{s}^\mathrm{T}\mathbf{y}}{\mathbf{y}^\mathrm{T}\mathbf{y}}\mathbf{I}
-\]</span> を初期のヘシアン逆行列とする。 ここで、<span class="math inline">\(\alpha = 1/\sum_j|g_j|\,j = 1, \dots, n\)</span>、<span class="math inline">\(\mathbf{s} = -\alpha\mathbf{g}_0\)</span>、<span class="math inline">\(\mathbf{y} = \mathbf{g}(\mathbf{x}_0-\alpha\mathbf{g}_0) - \mathbf{g}(\mathbf{x}_0)\)</span></p>
-<p>曲率条件<span class="math inline">\(\mathbf{s}^\mathrm{T}\mathbf{y} &gt; 0\)</span>を満たす必要があるので、一定値を下回った場合はヘシアン逆行列を上式で初期化する。</p>
+\]</span> ここで、<span class="math inline">\(\alpha = 1/\sum_j|g_j|,\,j = 1, \dots, n\)</span>、<span class="math inline">\(\mathbf{s} = -\alpha\mathbf{g}_0\)</span>、<span class="math inline">\(\mathbf{y} = \mathbf{g}(\mathbf{x}_0-\alpha\mathbf{g}_0) - \mathbf{g}(\mathbf{x}_0)\)</span>である。</p>
 <p>Rosenbrock函数</p>
 <p><span class="math display">\[
 f(x, y) = (1 - x)^2 + 100(y - x^2)^2
