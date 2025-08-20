@@ -257,7 +257,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
       function styleCell_zo8b0eeity3l3cb01xr2(i, j, css_id) {
           var table = document.getElementById("tinytable_zo8b0eeity3l3cb01xr2");
-          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
+          var cell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
           if (cell) {
               console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
               cell.classList.add(css_id);
@@ -265,48 +265,40 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
               console.warn(`Cell at (${i}, ${j}) not found.`);
           }
       }
-      function insertSpanRow(i, colspan, content) {
-        var table = document.getElementById('tinytable_zo8b0eeity3l3cb01xr2');
-        var newRow = table.insertRow(i);
-        var newCell = newRow.insertCell(0);
-        newCell.setAttribute("colspan", colspan);
-        // newCell.innerText = content;
-        // this may be unsafe, but innerText does not interpret <br>
-        newCell.innerHTML = content;
-      }
       function spanCell_zo8b0eeity3l3cb01xr2(i, j, rowspan, colspan) {
         var table = document.getElementById("tinytable_zo8b0eeity3l3cb01xr2");
-        const targetRow = table.rows[i];
-        const targetCell = targetRow.cells[j];
+        const targetCell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+        if (!targetCell) {
+          console.warn(`Cell at (${i}, ${j}) not found.`);
+        }
+
+        // Get all cells that need to be removed
+        const cellsToRemove = [];
         for (let r = 0; r < rowspan; r++) {
-          // Only start deleting cells to the right for the first row (r == 0)
-          if (r === 0) {
-            // Delete cells to the right of the target cell in the first row
-            for (let c = colspan - 1; c > 0; c--) {
-              if (table.rows[i + r].cells[j + c]) {
-                table.rows[i + r].deleteCell(j + c);
-              }
-            }
-          }
-          // For rows below the first, delete starting from the target column
-          if (r > 0) {
-            for (let c = colspan - 1; c >= 0; c--) {
-              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
-                table.rows[i + r].deleteCell(j);
-              }
+          for (let c = 0; c < colspan; c++) {
+            if (r === 0 && c === 0) continue; // Skip the target cell
+            const cell = table.querySelector(`[data-row="${i + r}"][data-col="${j + c}"]`);
+            if (cell) {
+              cellsToRemove.push(cell);
             }
           }
         }
-        // Set rowspan and colspan of the target cell
-        targetCell.rowSpan = rowspan;
-        targetCell.colSpan = colspan;
+
+        // Remove all cells
+        cellsToRemove.forEach(cell => cell.remove());
+
+        // Set rowspan and colspan of the target cell if it exists
+        if (targetCell) {
+          targetCell.rowSpan = rowspan;
+          targetCell.colSpan = colspan;
+        }
       }
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: 3, j: 0 }, { i: 3, j: 1 }, { i: 3, j: 2 },  ], css_id: 'tinytable_css_2lw717j9295zh6mww3vp',}, 
-          { positions: [ { i: 0, j: 0 }, { i: 0, j: 1 }, { i: 0, j: 2 },  ], css_id: 'tinytable_css_3jp7wk9x32d8outts82t',}, 
+          { positions: [ { i: '3', j: 0 }, { i: '3', j: 1 }, { i: '3', j: 2 },  ], css_id: 'tinytable_css_2lw717j9295zh6mww3vp',}, 
+          { positions: [ { i: '0', j: 0 }, { i: '0', j: 1 }, { i: '0', j: 2 },  ], css_id: 'tinytable_css_3jp7wk9x32d8outts82t',}, 
           ];
 
           // Loop over the arrays to style the cells
@@ -328,27 +320,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <thead>
         
               <tr>
-                <th scope="col">code</th>
-                <th scope="col">time</th>
-                <th scope="col">speedup</th>
+                <th scope="col" data-row="0" data-col="0">code</th>
+                <th scope="col" data-row="0" data-col="1">time</th>
+                <th scope="col" data-row="0" data-col="2">speedup</th>
               </tr>
         </thead>
         
         <tbody>
                 <tr>
-                  <td>loop</td>
-                  <td>0.518</td>
-                  <td>1</td>
+                  <td data-row="1" data-col="0">loop</td>
+                  <td data-row="1" data-col="1">0.543</td>
+                  <td data-row="1" data-col="2">1</td>
                 </tr>
                 <tr>
-                  <td>apply</td>
-                  <td>1.017</td>
-                  <td>0.51</td>
+                  <td data-row="2" data-col="0">apply</td>
+                  <td data-row="2" data-col="1">1.008</td>
+                  <td data-row="2" data-col="2">0.54</td>
                 </tr>
                 <tr>
-                  <td>vec</td>
-                  <td>0.004</td>
-                  <td>129.74</td>
+                  <td data-row="3" data-col="0">vec</td>
+                  <td data-row="3" data-col="1">0.004</td>
+                  <td data-row="3" data-col="2">135.1</td>
                 </tr>
         </tbody>
       </table>
