@@ -199,4 +199,4 @@ boxplot(d - sv$d[1])
 
 大規模な固有値問題にはFortran 77で書かれた [ARPACK](https://www.arpack.org/) が使われてきた
 （後継は [arpack-ng](https://github.com/opencollab/arpack-ng)）。
-C++で実装し直された [SpectrA](https://spectralib.org/) には、Rのインターフェースがあり、疎行列や行行列ベクトル積を計算する函数に対応している。
+C++で実装し直された [SpectrA](https://spectralib.org/) には、Rのインターフェースがあり、疎行列や行列ベクトル積を計算する函数に対応している。
