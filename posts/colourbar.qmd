@@ -1,0 +1,34 @@
+---
+title: "カラーバー"
+description: "画像の色に対する凡例"
+author: "榎本剛"
+date: 2025/9/27
+categories:
+  - "graphics"
+---
+
+`image()` は値 `z` に対応した色をつけた長方形を並べた格子を作る。
+横と縦の座標は `x` と `y` にベクトルで与える。
+単調増加でなければらないが、等間隔である必要はない。
+色をつける `z` の範囲は `zlim` で最小値と最大値を指定する。
+色は `col` に指定する。
+あらかじめ `hcl.colors()` （[HCL色空間](https://tenomoto.github.io/rchu/posts/hcl.html) 参照）などで取得しておく。
+`zlim` は `col` の色の数（$n$）に分割される。
+
+カラーバーは `image()` を使って描くことができるが、目盛を適切につけるには注意が必要である。
+縦長のカラーバーを描くとき `y` は $n + 1$ 分割する必要がある。
+一方 `z` は、それぞれの色の範囲の中間の値にする。
+
+```{r}
+zmax <- 2
+col <- "Blue-Red"
+zmin <- -zmax
+zlim <- c(zmin, zmax)
+nzlev <- zmax * 2
+col <- hcl.colors(nzlev, col)
+y <- seq(zlim[1], zlim[2], length.out = nzlev + 1)
+z <- matrix((y[-1] + y[-length(y)]) / 2, nrow = 1)
+image(x = 1, y = y, z = z, axes = FALSE, xlab = "", ylab = "", col = col)
+axis(4, at = y, las = 1)
+
+```

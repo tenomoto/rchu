@@ -7,10 +7,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="榎本剛">
-<meta name="dcterms.date" content="2025-06-20">
-<meta name="description" content="円、線分、矢印を描く">
+<meta name="dcterms.date" content="2025-09-27">
+<meta name="description" content="画像の色に対する凡例">
 
-<title>最適摂動 – R中心生活</title>
+<title>カラーバー – R中心生活</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -186,16 +186,15 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">最適摂動</h1>
+<h1 class="title">カラーバー</h1>
   <div class="quarto-categories">
-    <div class="quarto-category">dynamics</div>
     <div class="quarto-category">graphics</div>
   </div>
   </div>
 
 <div>
   <div class="description">
-    円、線分、矢印を描く
+    画像の色に対する凡例
   </div>
 </div>
 
@@ -212,7 +211,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">June 20, 2025</p>
+      <p class="date">September 27, 2025</p>
     </div>
   </div>
   
@@ -224,81 +223,23 @@ window.Quarto = {
 </header>
 
 
-<p>線型系</p>
-<p><span class="math display">\[
-\frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} = \mathbf{Au}
-\]</span></p>
-<p>を考える。 ここで <span class="math inline">\(\mathbf{u}(t)\)</span> は時刻 <span class="math inline">\(t\)</span> での状態、 <span class="math inline">\(\mathbf{A}\)</span> は線型化された力学演算子である。</p>
-<p>この演算子が <span class="math display">\[
-\mathbf{A} = \begin{bmatrix}-1 &amp; \cot\theta \\ 0 &amp; -2\end{bmatrix}
-\]</span></p>
-<p>で与えられているときの時間発展 <span class="math inline">\(\mathrm{d}\mathbf{u}/\mathrm{d}t\)</span> を矢印で描き、大きさ <span class="math inline">\(1\)</span> の摂動を円で、 <span class="math inline">\((\mathbf{A} + \mathbf{A}^\dagger)/2\)</span> の最大固有値に対応する単位固有ベクトル（数値的固有値の最大実部）と最も縮小する固有ベクトルを破線で描く。 順を追って示す。</p>
-<p>Base Rには円を函数はないので、区分的に直線を描く。</p>
+<p><code>image()</code> は値 <code>z</code> に対応した色をつけた長方形を並べた格子を作る。 横と縦の座標は <code>x</code> と <code>y</code> にベクトルで与える。 単調増加でなければらないが、等間隔である必要はない。 色をつける <code>z</code> の範囲は <code>zlim</code> で最小値と最大値を指定する。 色は <code>col</code> に指定する。 あらかじめ <code>hcl.colors()</code> （<a href="https://tenomoto.github.io/rchu/posts/hcl.html">HCL色空間</a> 参照）などで取得しておく。 <code>zlim</code> は <code>col</code> の色の数（<span class="math inline">\(n\)</span>）に分割される。</p>
+<p>カラーバーは <code>image()</code> を使って描くことができるが、目盛を適切につけるには注意が必要である。 縦長のカラーバーを描くとき <code>y</code> は <span class="math inline">\(n + 1\)</span> 分割する必要がある。 一方 <code>z</code> は、それぞれの色の範囲の中間の値にする。</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="cn">NULL</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), <span class="at">asp =</span> <span class="dv">1</span>,</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Circle"</span>, <span class="at">xlab =</span> <span class="st">"X"</span>, <span class="at">ylab =</span> <span class="st">"Y"</span>,</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">cex.main =</span> <span class="fl">1.5</span>, <span class="at">cex.lab =</span> <span class="fl">1.5</span>, <span class="at">cex.axis =</span> <span class="fl">1.5</span>)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>angle <span class="ot">&lt;-</span> pi <span class="sc">*</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">2</span> <span class="sc">*</span> pi, <span class="at">length.out =</span> <span class="dv">361</span>)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">cos</span>(angle), <span class="fu">sin</span>(angle), <span class="at">col =</span> <span class="st">"black"</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>zmax <span class="ot">&lt;-</span> <span class="dv">2</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>col <span class="ot">&lt;-</span> <span class="st">"Blue-Red"</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>zmin <span class="ot">&lt;-</span> <span class="sc">-</span>zmax</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>zlim <span class="ot">&lt;-</span> <span class="fu">c</span>(zmin, zmax)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>nzlev <span class="ot">&lt;-</span> zmax <span class="sc">*</span> <span class="dv">2</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>col <span class="ot">&lt;-</span> <span class="fu">hcl.colors</span>(nzlev, col)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">seq</span>(zlim[<span class="dv">1</span>], zlim[<span class="dv">2</span>], <span class="at">length.out =</span> nzlev <span class="sc">+</span> <span class="dv">1</span>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>z <span class="ot">&lt;-</span> <span class="fu">matrix</span>((y[<span class="sc">-</span><span class="dv">1</span>] <span class="sc">+</span> y[<span class="sc">-</span><span class="fu">length</span>(y)]) <span class="sc">/</span> <span class="dv">2</span>, <span class="at">nrow =</span> <span class="dv">1</span>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">image</span>(<span class="at">x =</span> <span class="dv">1</span>, <span class="at">y =</span> y, <span class="at">z =</span> z, <span class="at">axes =</span> <span class="cn">FALSE</span>, <span class="at">xlab =</span> <span class="st">""</span>, <span class="at">ylab =</span> <span class="st">""</span>, <span class="at">col =</span> col)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">axis</span>(<span class="dv">4</span>, <span class="at">at =</span> y, <span class="at">las =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="optperts_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>最大瞬時成長率を持つ単位ノルム摂動は、 <span class="math inline">\((\mathbf{A} + \mathbf{A}^\dagger) / 2\)</span> を固有値解析することにより得られ、 対応する固有ベクトルは <span class="math inline">\(x\)</span> 軸と <span class="math inline">\(\alpha = \arctan(\sin\theta - 1) / \cos\theta\)</span> の角をなす。 これと直交する方向が最も縮小する。 <span class="math inline">\(\theta\rightarrow 0\)</span> の極限では <span class="math inline">\(\alpha = -\pi / 4\)</span> である。 <code>abline()</code> は簡単に直線を描くことができるが、範囲を区切ることはできないので、 <code>segments()</code> で始点と終点を指定して描画する。</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="cn">NULL</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), <span class="at">asp =</span> <span class="dv">1</span>,</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Circle with diameters"</span>, <span class="at">xlab =</span> <span class="st">"X"</span>, <span class="at">ylab =</span> <span class="st">"Y"</span>,</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">cex.main =</span> <span class="fl">1.5</span>, <span class="at">cex.lab =</span> <span class="fl">1.5</span>, <span class="at">cex.axis =</span> <span class="fl">1.5</span>)</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>angle <span class="ot">&lt;-</span> pi <span class="sc">*</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">2</span> <span class="sc">*</span> pi, <span class="at">length.out =</span> <span class="dv">361</span>)</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">cos</span>(angle), <span class="fu">sin</span>(angle), <span class="at">col =</span> <span class="st">"black"</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">segments</span>(<span class="fu">cos</span>(<span class="dv">3</span> <span class="sc">*</span> pi<span class="sc">/</span><span class="dv">4</span>), <span class="fu">sin</span>(<span class="dv">3</span> <span class="sc">*</span> pi<span class="sc">/</span><span class="dv">4</span>), <span class="fu">cos</span>(<span class="sc">-</span>pi<span class="sc">/</span><span class="dv">4</span>), <span class="fu">sin</span>(<span class="sc">-</span>pi<span class="sc">/</span><span class="dv">4</span>), <span class="at">col =</span> <span class="st">"red"</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">segments</span>(<span class="fu">cos</span>(pi<span class="sc">/</span><span class="dv">4</span>), <span class="fu">sin</span>(pi<span class="sc">/</span><span class="dv">4</span>), <span class="fu">cos</span>(<span class="dv">5</span> <span class="sc">*</span> pi<span class="sc">/</span><span class="dv">4</span>), <span class="fu">sin</span>(<span class="dv">5</span> <span class="sc">*</span> pi<span class="sc">/</span><span class="dv">4</span>), <span class="at">col =</span> <span class="st">"blue"</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="optperts_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<p><span class="math inline">\(\theta = \pi / 100\)</span> の場合ついて、 <span class="math inline">\(\mathrm{d}\mathbf{A}/\mathrm{d}t\)</span> を矢印で描く。 矢印を描くには、 <code>arrows()</code> を使う。 <code>segments()</code> 同様 <code>arrows()</code> も始点と終点を指定する。 Rでは、スカラーは要素が1のベクトルなので、一つの矢印を描くのも、たくさん描くのも同様にできる。 矢印の中心を格子点の中心に置くことにする。 終点と始点は、適切な拡大縮小率を掛けて　<span class="math inline">\(x,\,y\)</span> 方向の成分を座標にそれぞれ加減する。 座標の位置は、<code>expand.grid()</code> を使って <span class="math inline">\(x,\,y\)</span> 方向それぞれ一次元のベクトルから生成する。</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">10</span>)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">10</span>)</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>theta <span class="ot">&lt;-</span> pi <span class="sc">/</span> <span class="dv">100</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>alpha <span class="ot">&lt;-</span> <span class="fu">atan</span>((<span class="fu">sin</span>(theta) <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">/</span> <span class="fu">cos</span>(theta))</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>cot <span class="ot">&lt;-</span> <span class="cf">function</span>(theta) {</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cos</span>(theta) <span class="sc">/</span> <span class="fu">sin</span>(theta)</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>amat <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">0</span>, <span class="sc">-</span><span class="fu">cot</span>(theta), <span class="sc">-</span><span class="dv">2</span>), <span class="at">nrow =</span> <span class="dv">2</span>)</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>xy <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(<span class="at">x =</span> x, <span class="at">y =</span> y)</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> xy<span class="sc">$</span>x</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>Y <span class="ot">&lt;-</span> xy<span class="sc">$</span>y</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>uv <span class="ot">&lt;-</span> amat <span class="sc">%*%</span> <span class="fu">t</span>(<span class="fu">as.matrix</span>(xy))</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="fl">0.005</span></span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>u <span class="ot">&lt;-</span> a <span class="sc">*</span> uv[<span class="dv">1</span>, ]</span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>v <span class="ot">&lt;-</span> a <span class="sc">*</span> uv[<span class="dv">2</span>, ]</span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="cn">NULL</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), <span class="at">asp =</span> <span class="dv">1</span>,</span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Tendencies θ = π/100"</span>, <span class="at">xlab =</span> <span class="st">"X"</span>, <span class="at">ylab =</span> <span class="st">"Y"</span>,</span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>     <span class="at">cex.main =</span> <span class="fl">1.5</span>, <span class="at">cex.lab =</span> <span class="fl">1.5</span>, <span class="at">cex.axis =</span> <span class="fl">1.5</span>)</span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="fu">arrows</span>(X <span class="sc">-</span> u, Y <span class="sc">-</span> v, X <span class="sc">+</span> u, Y <span class="sc">+</span> v,</span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="st">"gray"</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">length =</span> <span class="fl">0.1</span>, <span class="at">angle =</span> <span class="dv">10</span>)</span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="fu">segments</span>(<span class="fu">cos</span>(alpha), <span class="fu">sin</span>(alpha), <span class="fu">cos</span>(alpha <span class="sc">+</span> pi), <span class="fu">sin</span>(alpha <span class="sc">+</span> pi), <span class="at">col =</span> <span class="st">"red"</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="fu">segments</span>(<span class="fu">cos</span>(alpha <span class="sc">+</span> pi<span class="sc">/</span><span class="dv">2</span>), <span class="fu">sin</span>(alpha <span class="sc">+</span> pi<span class="sc">/</span><span class="dv">2</span>), <span class="fu">cos</span>(alpha <span class="sc">+</span> <span class="dv">3</span><span class="sc">*</span>pi<span class="sc">/</span><span class="dv">2</span>), <span class="fu">sin</span>(alpha <span class="sc">+</span> <span class="dv">3</span><span class="sc">*</span>pi<span class="sc">/</span><span class="dv">2</span>), <span class="at">col =</span> <span class="st">"blue"</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>angle <span class="ot">&lt;-</span> pi <span class="sc">*</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">2</span> <span class="sc">*</span> pi, <span class="at">length.out =</span> <span class="dv">361</span>)</span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">cos</span>(angle), <span class="fu">sin</span>(angle), <span class="at">col =</span> <span class="st">"black"</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="optperts_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="colourbar_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
