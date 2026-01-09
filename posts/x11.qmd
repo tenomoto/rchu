@@ -1,0 +1,31 @@
+---
+title: "x11"
+description: "描画ウインドウ"
+author: "榎本剛"
+date: 2026/1/9
+categories:
+  - "basics"
+  - "graphics"
+---
+
+ターミナルでRを起動したとき、`plot` などの描画結果は既定のデバイスである `pdf()` に出力される。
+既定のファイル名は `Rplots.pdf` である。
+
+探索的データ解析では、ウィンドウに描画できると便利である。
+描画のためのウィンドウを開く函数は `x11()` である。
+UNIX風OSでは、X11のウインドウが開く。
+Windowsでは、`x11()` は `windows()` を呼び出す。
+描画を保存するには、 `savePlot()` を用いる。
+引数にファイル名を渡すことができるが、既定は `Rplot` である。
+既定の `type` は `png` だが、`jpg` などの別のビットマップ形式も指定できる。
+
+macOSで `x11` を使うには、XQuartzをインストールする必要がある。
+MacPortsでは、`xorg-server`をインストールする。
+macOSには `quartz()` もあり、より鮮明に描画される。
+ウィンドウに描画されたものは、 `quartz.save()` で保存できる。
+既定の `type` はPNGだが、`pdf` を指定することもできる。
+
+![quartz()ウィンドウ](images/rnorm1000.png)
+
+
+

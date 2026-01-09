@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/x11.html",
       "/posts/colourbar.html",
       "/posts/lanczos.html",
       "/posts/roc.html",
