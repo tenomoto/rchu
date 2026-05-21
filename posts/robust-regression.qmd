@@ -61,4 +61,75 @@ $$
 
 で与えられる。
 
+最小二乗法による予測は
 
+$$
+f(x) = \hat{\beta}_0 + \sum_{j=1}^p \hat{\beta}_j x_j
+$$
+
+で与えられる。
+ここで、 $f:\,\mathbb{R}^p \rightarrow \mathbb{R}$、$\mathbf{x} = (x_1\,x_2\,\dots\,x_p)^\mathrm{T}\in\mathbb{R}^p$ である。
+
+最小二乗法の欠点は、外れ値に敏感であることである。
+外れ値に対する敏感性を回避するために考案されたのが、ロバスト回帰でM推定とも呼ばれる。
+
+## ロバストカーネルリッジ回帰
+
+特徴量空間における回帰
+
+$$
+\psi: \mathbb{R}^p \rightarrow \mathcal{F}\in\mathbb{R}^{p_\mathcal{F}}\;p_\mathcal{F} > p
+$$
+
+を考える。
+ここで $\mathcal{F}$ は特徴量空間を表す。
+
+特徴量行列
+
+$$
+\boldsymbol\Psi = (\psi(x_1)\,\psi(x_2)\,\dots\,\psi(x_N))^\mathrm{T}
+$$
+
+の積
+
+$$
+\mathbf{K} = \boldsymbol\Psi\boldsymbol\Psi^\mathrm{T}
+$$
+
+をカーネル行列という。
+
+$$
+\sum_{i=1}^N \psi(\mathbf{x}_i) = 0
+$$
+
+を仮定する。
+
+標準中心化された特徴量空間での多重線型回帰は次のように書ける。
+
+$$
+\mathbf{Y}_\mathrm{o} = \boldsymbol\Psi\boldsymbol\gamma + \tilde{\boldsymbol\epsilon}
+$$
+
+ここで、 $\boldsymbol\gamma = (\gamma_1\,\gamma_2\,\dots\gamma_{p_\mathcal{F}})^\mathrm{T}$ と $\tilde{\boldsymbol\epsilon}$ は、それぞれ特徴量空間における回帰係数ベクトルとランダム誤差を表す。
+
+$$
+\mathbf{Y}_\mathrm{o} = \left(\mathbf{I}_N - \frac{1}{N}\mathbf{1}_N\mathbf{1}_N^\mathrm{T}\right)\mathbf{Y}
+$$
+
+は偏差である。
+
+$\mathbf{Y}_\mathrm{o}$ の観測値
+
+$$
+\mathbf{y}_\mathrm{o} = (y_{\mathrm{o}1}\,y_{\mathrm{o}2}\,\dots\,y_{\mathrm{o}N})^\mathrm{T}\in\mathbb{R}^N
+$$
+
+に対する回帰
+
+$$
+\mathbf{y}_\mathrm{o} = \boldsymbol\Psi\boldsymbol\gamma + \tilde{\mathbf{e}}
+$$
+
+を考える。
+
+$\tilde{\mathbf{e}} = (\tilde{e}_1\,\tilde{e}_2\,\dots\,\tilde{e}_N)\in\mathbb{R}^N$ は残差ベクトルである。
