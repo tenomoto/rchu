@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/robust-regression.html",
       "/posts/x11.html",
       "/posts/colourbar.html",
       "/posts/lanczos.html",
