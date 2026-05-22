@@ -423,7 +423,7 @@ y_test_rkrr <- rkrr_predict(rkrr, x_test)
 
 plot(x_train, f(x_train), type = 'l', col = 'black',
      lwd = 2, lty = 3,
-     xlab = "x", ylab = "y", ylim = c(-15, 15),
+     xlab = "x", ylab = "y", ylim = c(-15, 20),
      main = "train")
 lines(x_train, y_train_ols, col = 'blue', lty = 2, lwd = 2)
 lines(x_train, y_train_rols, col = 'red', lty = 2, lwd = 2)
